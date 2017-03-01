@@ -9,30 +9,296 @@ Base namespace analyzertools application.
 
 import sys
 import os
-import configparser
+import re
+import colorama
+import traceback
 
 from optparse import OptionParser
+from enum import Enum, unique
+
+
+@unique
+class FileType(Enum):
+    STATE = "STATE.PMJ"
+    HIERARCH = "HIERARCH.PM"
+
+
+@unique
+class ItemType(Enum):
+    FOLDER = 0
+    TRAY = 1
+
+
+def _create_scheme(style="", fore="", back=""):
+    scheme = ""
+
+    text_style = None
+    text_fore = None
+    text_back = None
+
+    if style != "":
+        text_style = getattr(colorama.Style, style)
+
+    if fore != "":
+        text_fore = getattr(colorama.Fore, fore)
+
+    if back != "":
+        text_back = getattr(colorama.Back, back)
+
+    if text_style is not None:
+        scheme += text_style
+
+    if text_fore is not None:
+        scheme += text_fore
+
+    if text_back is not None:
+        scheme += text_back
+    return scheme
+
+
+def _write_stdout(content, raw=False):
+    sys.stdout.write(content)
+    if raw is True:
+        return
+    sys.stdout.write("\n")
+    return
+
+
+def _write_stderr(content, raw=False):
+    sys.stderr.write(content)
+    if raw is True:
+        return
+    sys.stderr.write("\n")
+    return
+
+
+class Log(object):
+
+    def __init__(self):
+        self.reset = colorama.Style.RESET_ALL
+        self.LabelNum = 15
+        self.Seperator = "| "
+        return
+
+    def inform(self, tag, text):
+
+        scheme = _create_scheme("BRIGHT", "GREEN")
+
+        content = self.reset + scheme + " " + tag.ljust(self.LabelNum) + self.Seperator + self.reset + text
+        _write_stdout(content)
+        return
+
+    def warn(self, tag, text):
+
+        scheme = _create_scheme("BRIGHT", "MAGENTA")
+
+        content = self.reset + scheme + " " + tag.ljust(self.LabelNum) + self.Seperator + self.reset + text
+        _write_stdout(content)
+        return
+
+    def error(self, text):
+
+        scheme = _create_scheme("BRIGHT", "RED")
+        tag = "ERROR"
+
+        content = self.reset + scheme + " " + tag.ljust(self.LabelNum) + self.Seperator + self.reset + text
+        _write_stderr(content)
+        return
+
+    def log_traceback(self):
+        """Log most recent exception.
+
+        @param
+            self: The object pointer. (LOG)
+        """
+
+        ttype, value, tb = sys.exc_info()
+        self.error("Uncaught exception")
+        self.error("Type:      " + str(ttype))
+        self.error("Value:     " + str(value))
+
+        lines = traceback.format_tb(tb)
+        for line in lines:
+            _write_stderr(line, True)
+        return
+
+    def exception(self, e):
+
+        scheme = _create_scheme("BRIGHT", "RED")
+        tag = "EXCEPTION"
+        text = str(e)
+
+        content = self.reset + scheme + " " + tag.ljust(self.LabelNum) + self.Seperator + self.reset + text
+        _write_stderr(content)
+        return
+
+
+colorama.init()
+log = Log()
+
+
+class Item(object):
+
+    def __init__(self):
+
+        # 1
+        self.Type = None
+
+        # 2
+        self.Flags = 0
+
+        # 3a
+        self.UID = ""
+
+        # 3b
+        self.Entry = ""
+
+        # 4
+        self.Parent = ""
+
+        # 5
+        self.Name = ""
+
+    def parse(self, line):
+        line = line.replace("\"", "")
+        items = line.split(",")
+
+        count = len(items)
+        if count != 5:
+            log.error("Invalid item size: " + str(count))
+            log.error(line)
+            return False
+
+        item_type = int(items[0])
+
+        try:
+            self.Type = ItemType(item_type)
+        except:
+            log.error("Invalid type: " + str(item_type))
+            return False
+
+        self.Flags = items[1]
+        self.Parent = str(items[3])
+        self.Name = str(items[4])
+
+        uid = str(items[2])
+
+        re_file = re.compile("(?P<UID>[a-zA-Z0-9]+):(?P<SUID>[a-zA-Z0-9]+):(?P<Filename>.+)")
+        re_entry = re.compile("(?P<UID>[a-zA-Z0-9]+):(?P<Entry>.+)")
+
+        m = re_file.search(uid)
+        if m:
+            self.UID = m.group('UID')
+            self.Entry = m.group('Filename')
+            return True
+
+        m = re_entry.search(uid)
+        if m:
+            self.UID = m.group('UID')
+            self.Entry = m.group('Entry')
+            return True
+
+        return False
 
 
 class Main(object):
 
     def __init__(self):
         self.Parser = OptionParser("usage: %prog [options]")
+        self.Options = None
+        self.Output = ""
+        self.Hierarchy = ""
+        self.State = ""
+        self.Root = ""
+        self.Entries = {}
+        return
+
+    def init(self):
         self.Parser.add_option("-o", "--output", help="store data in OUTPUT", metavar="OUTPUT", type="string")
         self.Parser.add_option("-i", "--input", help="store data in INPUT", metavar="INPUT", type="string")
 
         (options, args) = self.Parser.parse_args()
 
-        self.Options = options
+        if not options.input:
+            log.error("Missing input!")
+            return False
 
-        if self.Options.input:
-            self.Input = os.path.realpath(self.Options.input)
+        if not options.output:
+            log.error("Missing output!")
+            return False
 
-        if self.Options.input:
-            self.Output = os.path.realpath(self.Options.output)
-        return
+        input_path = os.path.realpath(options.input)
+        self.Output = os.path.realpath(options.output)
 
+        check = os.path.exists(input_path)
+        if check is False:
+            log.error("Does not exists: " + input_path)
+            return False
+
+        hierarch = os.path.normpath(input_path + "/" + FileType.HIERARCH.value)
+        if os.path.exists(hierarch) is False:
+            log.error("Not found: " + hierarch)
+            return False
+
+        self.Hierarchy = hierarch
+
+        state = os.path.normpath(input_path + "/" + FileType.STATE.value)
+        if os.path.exists(state) is False:
+            log.error("Not found: " + state)
+            return False
+
+        self.State = state
+
+        log.inform("PARSE", "State:     " + self.State)
+        log.inform("PARSE", "Hierarchy: " + self.Hierarchy)
+        return True
+
+    def parse(self):
+        f = open(self.State, 'r')
+
+        re_default = re.compile("DEFAULT=[0-9]+,[0-9]+,[0-9]+,[0-9]+,\"(?P<UID>[a-zA-Z0-9]+):(?P<Name>.+)\"")
+
+        for line in f:
+            line = line.replace("\r\n", "")
+            line = line.replace("\n", "")
+
+            m = re_default.search(line)
+            if m:
+                root = Item()
+                root.Name = m.group('Name')
+                root.UID = m.group('UID')
+                self.Root = root
+                break
+            continue
+        f.close()
+
+        if self.Root is None:
+            log.error("Root not found!")
+            return False
+
+        log.inform("ROOT", self.Root.Name + " (" + self.Root.UID + ")")
+
+        f = open(self.Hierarchy, 'r')
+        for line in f:
+            line = line.replace("\r\n", "")
+            line = line.replace("\n", "")
+
+            item = Item()
+            check = item.parse(line)
+            if check is True:
+                if list(self.Entries).count(item.UID) != 0:
+                    log.warn("ITEM", "Duplicate UID for " + item.Name + " (" + item.UID + ")")
+                    continue
+                log.inform("ADD", item.Type.name + ": " + item.Name + " (" + item.UID + ")")
+                self.Entries[item.UID] = item
+        f.close()
+        return True
 
 
 if __name__ == '__main__':
     main = Main()
+    check = main.init()
+    if check is False:
+        sys.exit(1)
+
+    check = main.parse()
