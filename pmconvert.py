@@ -165,6 +165,7 @@ class Item(object):
         self.Level = 0
         self.Pos = 0
         self.Max = 0
+        self.Filename = ""
         return
 
     def _get_parent_uid(self, parent):
@@ -243,18 +244,20 @@ class Main(object):
     def __init__(self):
         self.Parser = OptionParser("usage: %prog [options]")
         self.Options = None
+        self.Input = ""
         self.Output = ""
         self.Hierarchy = ""
         self.State = ""
         self.Root = None
         self.Entries = {}
-        self.Tree = {}
-        self.Show = ""
+        self.Tree = ""
+        self.IsTree = False
         return
 
     def init(self):
         self.Parser.add_option("-o", "--output", help="store data in OUTPUT", metavar="OUTPUT", type="string")
         self.Parser.add_option("-i", "--input", help="store data in INPUT", metavar="INPUT", type="string")
+        self.Parser.add_option("-t", "--tree", help="add a tree file", action="store_true")
 
         (options, args) = self.Parser.parse_args()
 
@@ -266,6 +269,9 @@ class Main(object):
             log.error("Missing output!")
             return False
 
+        if options.tree:
+            self.IsTree = True
+
         input_path = os.path.realpath(options.input)
         self.Output = os.path.realpath(options.output)
 
@@ -273,6 +279,8 @@ class Main(object):
         if check is False:
             log.error("Does not exists: " + input_path)
             return False
+
+        self.Input = input_path
 
         hierarch = os.path.normpath(input_path + "/" + FileType.HIERARCH.value)
         if os.path.exists(hierarch) is False:
@@ -360,6 +368,11 @@ class Main(object):
 
     def _parse_children(self, entry):
 
+        if entry.Type == ItemType.FOLDER:
+            path = os.path.normpath(self.Input + "/" + entry.Entry + ".PMM")
+            if os.path.exists(path):
+                entry.Filename = path
+
         children = self._get_children(entry.UID)
         count = len(children)
 
@@ -371,10 +384,6 @@ class Main(object):
             self._parse_children(child)
 
         entry.info()
-        return
-
-    def build_tree(self):
-        self._parse_children(self.Root)
         return
 
     def _show_tree_item(self, entry):
@@ -409,11 +418,14 @@ class Main(object):
 
             item = item.Parent
 
-        show = sep + "\n"
+        if (entry.Type == ItemType.FOLDER) and (entry.Filename != ""):
+            show = sep.ljust(60) + entry.Filename + "\n"
+        else:
+            show = sep + "\n"
 
         return show
 
-    def gen_tree(self, entry=None, level=0):
+    def _create_tree(self, entry=None, level=0):
 
         if entry is None:
             entry = self.Root
@@ -422,7 +434,7 @@ class Main(object):
 
         entry.Level = level
 
-        self.Show += self._show_tree_item(entry)
+        self.Tree += self._show_tree_item(entry)
 
         max = len(entry.Children)
         if max > 0:
@@ -432,8 +444,23 @@ class Main(object):
         for child in entry.Children:
             child.Pos = n
             child.Max = max
-            self.gen_tree(child, level)
+            self._create_tree(child, level)
             n += 1
+        return
+
+    def build_tree(self):
+        self._parse_children(self.Root)
+        self._create_tree()
+
+        if self.IsTree is False:
+            return
+
+        path = os.path.normpath("tree.txt")
+        log.inform("TREE", "Write tree: " + path)
+        f = open(path, "w", encoding="utf-8", newline="\n")
+        # f.write(str.encode(self.Tree))
+        f.write(self.Tree)
+        f.close()
         return
 
 if __name__ == '__main__':
@@ -444,6 +471,5 @@ if __name__ == '__main__':
 
     check = main.parse()
     main.build_tree()
-    main.gen_tree()
     sys.stdout.write(main.Show)
     sys.stdout.write("\n")
