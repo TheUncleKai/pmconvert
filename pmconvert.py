@@ -163,6 +163,8 @@ class Item(object):
         self.Name = ""
         self.Children = []
         self.Level = 0
+        self.Pos = 0
+        self.Max = 0
         return
 
     def _get_parent_uid(self, parent):
@@ -224,6 +226,9 @@ class Item(object):
         if check is False:
             return False
 
+        if self.Name == "Name_Unavailable":
+            return False
+
         return True
 
     def info(self):
@@ -244,7 +249,6 @@ class Main(object):
         self.Root = None
         self.Entries = {}
         self.Tree = {}
-        self.Level = 0
         self.Show = ""
         return
 
@@ -373,25 +377,63 @@ class Main(object):
         self._parse_children(self.Root)
         return
 
-    def gen_tree(self, entry=None):
+    def _show_tree_item(self, entry):
+        level = entry.Level
+
+        show = ""
+
+        if level == 0:
+            show = "* " + entry.Name + "\n"
+            return show
+
+        sep = ""
+        item = entry
+
+        while True:
+            if item is None:
+                break
+
+            n = item.Level
+
+            if n == level:
+                if item.Pos == item.Max:
+                    sep = "`-- " + item.Name
+                else:
+                    sep = "+-- " + item.Name
+
+            if n < level:
+                if item.Pos == item.Max:
+                    sep = "    " + sep
+                else:
+                    sep = "|   " + sep
+
+            item = item.Parent
+
+        show = sep + "\n"
+
+        return show
+
+    def gen_tree(self, entry=None, level=0):
 
         if entry is None:
             entry = self.Root
-            self.Level = 0
+            level = 0
             self.Show = ""
 
-        entry.Level = self.Level
+        entry.Level = level
 
-        self.Show += (" " * self.Level * 4) + entry.Name + "\n"
+        self.Show += self._show_tree_item(entry)
 
-        level = self.Level
-        if len(entry.Children) > 0:
-            self.Level += 1
+        max = len(entry.Children)
+        if max > 0:
+            level += 1
 
+        n = 1
         for child in entry.Children:
-            self.gen_tree(child)
-
-        self.Level = level
+            child.Pos = n
+            child.Max = max
+            self.gen_tree(child, level)
+            n += 1
         return
 
 if __name__ == '__main__':
@@ -403,5 +445,5 @@ if __name__ == '__main__':
     check = main.parse()
     main.build_tree()
     main.gen_tree()
-    print(main.Show)
-
+    sys.stdout.write(main.Show)
+    sys.stdout.write("\n")
