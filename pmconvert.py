@@ -154,35 +154,28 @@ class Item(object):
         self.Entry = ""
 
         # 4
-        self.Parent = ""
+        self.ParentID = ""
+
+        # 4
+        self.Parent = None
 
         # 5
         self.Name = ""
+        self.Children = []
+        self.Level = 0
+        return
 
-    def parse(self, line):
-        line = line.replace("\"", "")
-        items = line.split(",")
+    def _get_parent_uid(self, parent):
+        re_entry = re.compile("(?P<UID>[a-zA-Z0-9]+):(?P<Parent>.+)")
 
-        count = len(items)
-        if count != 5:
-            log.error("Invalid item size: " + str(count))
-            log.error(line)
-            return False
+        m = re_entry.search(parent)
+        if m:
+            self.ParentID = m.group('UID')
+            return True
 
-        item_type = int(items[0])
+        return False
 
-        try:
-            self.Type = ItemType(item_type)
-        except:
-            log.error("Invalid type: " + str(item_type))
-            return False
-
-        self.Flags = items[1]
-        self.Parent = str(items[3])
-        self.Name = str(items[4])
-
-        uid = str(items[2])
-
+    def _get_uid(self, uid):
         re_file = re.compile("(?P<UID>[a-zA-Z0-9]+):(?P<SUID>[a-zA-Z0-9]+):(?P<Filename>.+)")
         re_entry = re.compile("(?P<UID>[a-zA-Z0-9]+):(?P<Entry>.+)")
 
@@ -200,6 +193,45 @@ class Item(object):
 
         return False
 
+    def parse(self, line):
+        line = line.replace("\"", "")
+        items = line.split(",")
+
+        count = len(items)
+        if (count != 5) and (count != 7):
+            log.error("Invalid item size: " + str(count))
+            log.error(line)
+            return False
+
+        item_type = int(items[0])
+
+        try:
+            self.Type = ItemType(item_type)
+        except:
+            log.error("Invalid type: " + str(item_type))
+            return False
+
+        self.Flags = items[1]
+        self.Name = str(items[4])
+
+        uid = str(items[2])
+        check = self._get_uid(uid)
+        if check is False:
+            return False
+
+        parent = str(items[3])
+        check = self._get_parent_uid(parent)
+        if check is False:
+            return False
+
+        return True
+
+    def info(self):
+        count = len(self.Children)
+        if count > 0:
+            log.inform(self.Name, str(count) + " children")
+        return
+
 
 class Main(object):
 
@@ -209,8 +241,11 @@ class Main(object):
         self.Output = ""
         self.Hierarchy = ""
         self.State = ""
-        self.Root = ""
+        self.Root = None
         self.Entries = {}
+        self.Tree = {}
+        self.Level = 0
+        self.Show = ""
         return
 
     def init(self):
@@ -294,6 +329,70 @@ class Main(object):
         f.close()
         return True
 
+    def _sort_entries(self, entries):
+        names = {}
+
+        for entry in list(entries):
+            names[entry.Name] = entry
+
+        newlist = []
+
+        for key in sorted(list(names)):
+            newlist.append(names[key])
+
+        return newlist
+
+    def _get_children(self, uid):
+        children = []
+
+        keys = list(self.Entries)
+        for key in keys:
+            entry = self.Entries[key]
+            if entry.ParentID == uid:
+                children.append(entry)
+
+        newlist = self._sort_entries(children)
+        return newlist
+
+    def _parse_children(self, entry):
+
+        children = self._get_children(entry.UID)
+        count = len(children)
+
+        for child in children:
+            child.Parent = entry
+            entry.Children.append(child)
+
+        for child in children:
+            self._parse_children(child)
+
+        entry.info()
+        return
+
+    def build_tree(self):
+        self._parse_children(self.Root)
+        return
+
+    def gen_tree(self, entry=None):
+
+        if entry is None:
+            entry = self.Root
+            self.Level = 0
+            self.Show = ""
+
+        entry.Level = self.Level
+
+        self.Show += (" " * self.Level * 4) + entry.Name + "\n"
+
+        level = self.Level
+        if len(entry.Children) > 0:
+            self.Level += 1
+
+        for child in entry.Children:
+            self.gen_tree(child)
+
+        self.Level = level
+        return
 
 if __name__ == '__main__':
     main = Main()
@@ -302,3 +401,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     check = main.parse()
+    main.build_tree()
+    main.gen_tree()
+    print(main.Show)
+
