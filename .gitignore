@@ -7,6 +7,7 @@ __pycache__/
 *.so
 
 tools/
+tree.txt
 
 # Distribution / packaging
 .Python
