@@ -6,6 +6,8 @@ __pycache__/
 # C extensions
 *.so
 
+.idea
+
 tools/
 tree.txt
 
@@ -83,7 +85,11 @@ celerybeat-schedule
 
 # virtualenv
 venv/
+.venv/
 ENV/
+
+.gitmessages
+.gitmessages.*
 
 # Spyder project settings
 .spyderproject
