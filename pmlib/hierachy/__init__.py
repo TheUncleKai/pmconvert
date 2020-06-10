@@ -49,7 +49,7 @@ class Hierarchy(object):
         pmlib.log.inform("Hierarchy", "Open {0:s}".format(filename))
 
         f = open(filename, mode='r')
-        for line in f:#
+        for line in f:
             data = Entry()
             check = data.parse(line)
             if check is False:
