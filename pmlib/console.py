@@ -16,10 +16,13 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
-import pmlib
-from optparse import OptionParser, OptionGroup
-
 import os
+from optparse import OptionParser
+
+import pmlib
+from pmlib.hierachy import Hierarchy
+
+
 
 
 class Console(object):
@@ -28,6 +31,8 @@ class Console(object):
 
         self.options = None
         self.folder: str = ""
+
+        self.hierarchy: Hierarchy = Hierarchy()
 
         usage = "usage: %prog [options] arg1 arg2"
         self.parser: OptionParser = OptionParser(usage=usage)
@@ -49,6 +54,10 @@ class Console(object):
         return True
 
     def run(self) -> bool:
+        count = self.hierarchy.parse(self.folder)
+        if count == 0:
+            return False
+
         return True
 
     def close(self) -> bool:

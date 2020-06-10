@@ -16,24 +16,48 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+from enum import Enum
+from typing import Union
 
-from typing import Union, List
+__all__ = [
+    "Type",
+    "get_type",
 
-
-class Entry(object):
-
-    def __init__(self):
-        self.parent: Union[Entry, None] = None
-
-        self.id: str = ""
-        self.name: str = ""
-        return
+    "State",
+    "get_state"
+]
 
 
-class Hierarchy(object):
+class Type(Enum):
 
-    def __init__(self):
+    mailbox = 2
+    tray = 1
+    folder = 0
 
-        self.entries: List[Entry] = []
-        self.root: Union[Entry, None] = None
-        return
+
+def get_type(value: int) -> Union[Type, None]:
+    _ret = None
+
+    for _item in Type:
+        if _item.value == value:
+            _ret = _item
+            break
+    return _ret
+
+
+class State(Enum):
+
+    closed = 0
+    open = 1
+    closed_unread = 2
+    open_unread = 3
+
+
+def get_state(value: int) -> Union[State, None]:
+    _ret = None
+
+    for _item in State:
+        if _item.value == value:
+            _ret = _item
+            break
+    return _ret
