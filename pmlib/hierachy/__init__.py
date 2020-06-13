@@ -35,12 +35,13 @@ class Hierarchy(object):
 
     def __init__(self):
 
+        self.root: Union[Entry, None] = None
         self.count: int = 0
         self.entries: List[Entry] = []
         self.root: Union[Entry, None] = None
         return
 
-    def parse(self, folder: str) -> bool:
+    def parse(self, folder: str, root: str) -> bool:
         filename = os.path.abspath(os.path.normpath("{0:s}/HIERARCH.PM".format(folder)))
         if os.path.exists(filename) is False:
             pmlib.log.error("Unable to find HIERARCH.PM")
@@ -53,10 +54,17 @@ class Hierarchy(object):
             data = Entry(line)
             if data.valid is False:
                 continue
+            if data.name == root:
+                data.is_root = True
+                self.root = data
             self.entries.append(data)
             data.show()
             self.count += 1
         f.close()
+
+        if self.root is None:
+            pmlib.log.warn("Hierarchy", "No root found!")
+            return False
 
         if self.count == 0:
             pmlib.log.warn("Hierarchy", "No entries found!")
@@ -64,3 +72,11 @@ class Hierarchy(object):
 
         pmlib.log.inform("Hierarchy", "{0:d} entries found!".format(self.count))
         return True
+
+    def sort(self):
+        self.root.populate(self.entries)
+
+        for _item in self.entries:
+            _item.populate(self.entries)
+
+        return

@@ -17,8 +17,8 @@
 #
 
 import re
-from typing import Union, Any
-from dataclasses import dataclass
+from typing import Union, Any, List
+from dataclasses import dataclass, field
 
 import pmlib
 from pmlib.hierachy.types import Type, State, get_type, get_state
@@ -76,34 +76,45 @@ class _Folder(object):
 
 
 @dataclass(init=False)
-class Entry(object):
+class _Entry(object):
 
     type: Type
     state: State
 
     data: Union[_Object, _Folder] = None
+    children: List[Any] = field(default_factory=list)
 
     parent: Any = None
     parent_id: str = ""
     name: str = ""
     valid: bool = False
+    is_root: bool = False
+    is_sorted: bool = False
 
     @property
     def id(self) -> str:
         return self.data.id
 
+
+class Entry(_Entry):
+
     def __repr__(self):
-        return self.data.id
+        return self.name
 
     def __init__(self, line: str):
         m = _entry.search(line)
         if m is None:
             return
 
+        parent_id = _Object(m.group("Parent"))
+
+        self.children = []
         self.type = get_type(int(m.group("Type")))
         self.state = get_state(int(m.group("State")))
         self.name = str(m.group("Name"))
-        self.parent_id = str(m.group("Parent"))
+
+        if parent_id.valid is True:
+            self.parent_id = parent_id.id
 
         if self.type is Type.folder:
             data = _Folder(m.group("Data"))
@@ -120,6 +131,23 @@ class Entry(object):
             return
 
         self.valid = True
+        return
+
+    def populate(self, datalist: List[_Entry]):
+        if self.is_sorted is True:
+            return
+
+        for _item in datalist:
+            if _item.is_sorted is True:
+                continue
+
+            if _item.parent_id == self.id:
+                self.children.append(_item)
+
+                if _item.type is Type.folder:
+                    _item.is_sorted = True
+
+        self.is_sorted = True
         return
 
     def show(self):

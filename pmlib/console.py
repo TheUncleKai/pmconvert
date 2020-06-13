@@ -23,14 +23,13 @@ import pmlib
 from pmlib.hierachy import Hierarchy
 
 
-
-
 class Console(object):
 
     def __init__(self):
 
         self.options = None
         self.folder: str = ""
+        self.root: str = ""
 
         self.hierarchy: Hierarchy = Hierarchy()
 
@@ -39,6 +38,7 @@ class Console(object):
         self.parser.add_option("-v", "--verbose", help="run verbose level [0..3]", metavar="1", type="int",
                                default=0)
         self.parser.add_option("-f", "--folder", help="pegasus mail folder", type="string", default="")
+        self.parser.add_option("-r", "--root", help="pegasus mail root mailbox", type="string", default="My mailbox")
         return
 
     def prepare(self) -> bool:
@@ -50,13 +50,16 @@ class Console(object):
             return False
 
         self.folder = options.folder
+        self.root = options.root
         pmlib.log.inform("Mail folder", "{0:s}".format(self.folder))
         return True
 
     def run(self) -> bool:
-        count = self.hierarchy.parse(self.folder)
+        count = self.hierarchy.parse(self.folder, self.root)
         if count == 0:
             return False
+
+        self.hierarchy.sort()
 
         return True
 
