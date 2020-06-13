@@ -17,53 +17,110 @@
 #
 
 import re
-from typing import Union
+from typing import Union, Any
+from dataclasses import dataclass
 
 import pmlib
 from pmlib.hierachy.types import Type, State, get_type, get_state
 
+__all__ = [
+    "Entry"
+]
 
-class Entry(object):
 
-    def __init__(self):
-        self.parent: Union[Entry, None] = None
+_entry = re.compile("(?P<Type>[0-9]+),(?P<State>[0-9]+),\"(?P<Data>.+)\",\"(?P<Parent>.*)\",\"(?P<Name>.*)\"")
+_object = re.compile("(?P<ID>.+):(?P<Name>.+)")
+_folder = re.compile("(?P<ID>.+):(?P<Folder>.+):(?P<Name>.+)")
 
-        self.unique_id: str = ""
-        self.folder_id: str = ""
-        self.name: str = ""
 
-        self.type: Type = Type.mailbox
-        self.state: State = State.closed
+@dataclass(init=False)
+class _Object(object):
 
-        # 0,0,"GTCNHPSY:0385:UNX0391B","1D553105:Accounts","Chefkoch"
+    id: str
+    name: str
+    valid: bool = False
 
-        self._re_entry = re.compile(
-            "(?P<Type>[0-9]+),(?P<State>[0-9]+),\"(?P<Folder>.+)\",\"(?P<Parent>.*)\",\"(?P<Name>.*)\"")
+    def __repr__(self):
+        return self.id
 
+    def __init__(self, data: str):
+        m = _object.search(data)
+        if m is None:
+            return
+        self.id = m.group("ID")
+        self.name = m.group("Name")
+        self.valid = True
         return
 
-    def parse(self, line: str) -> bool:
 
-        m = self._re_entry.search(line)
+@dataclass(init=False)
+class _Folder(object):
+
+    id: str
+    folder: str
+    name: str
+    valid: bool = False
+
+    def __repr__(self):
+        return self.id
+
+    def __init__(self, data: str):
+        m = _folder.search(data)
         if m is None:
-            return False
+            return
+        self.id = m.group("ID")
+        self.folder = m.group("Folder")
+        self.name = m.group("Name")
+        self.valid = True
+        return
+
+
+@dataclass(init=False)
+class Entry(object):
+
+    type: Type
+    state: State
+
+    data: Union[_Object, _Folder] = None
+
+    parent: Any = None
+    parent_id: str = ""
+    name: str = ""
+    valid: bool = False
+
+    @property
+    def id(self) -> str:
+        return self.data.id
+
+    def __repr__(self):
+        return self.data.id
+
+    def __init__(self, line: str):
+        m = _entry.search(line)
+        if m is None:
+            return
 
         self.type = get_type(int(m.group("Type")))
-        if self.type is None:
-            return False
-
         self.state = get_state(int(m.group("State")))
-        if self.state is None:
-            return False
+        self.name = str(m.group("Name"))
+        self.parent_id = str(m.group("Parent"))
 
-        data_folder = m.group("Folder")
-        data_parent = m.group("Parent")
-        name = m.group("Name")
-        if name is None:
-            return False
+        if self.type is Type.folder:
+            data = _Folder(m.group("Data"))
+            if data.valid is True:
+                self.data = data
+        else:
+            data = _Object(m.group("Data"))
+            if data.valid is True:
+                self.data = data
+        if self.data is None:
+            return
 
-        self.name = name
-        return True
+        if self.type is None or self.state is None:
+            return
+
+        self.valid = True
+        return
 
     def show(self):
         pmlib.log.inform("Entry", "{0:s},{1:s},{2:s}".format(self.type.name, self.state.name, self.name))

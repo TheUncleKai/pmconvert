@@ -50,9 +50,8 @@ class Hierarchy(object):
 
         f = open(filename, mode='r')
         for line in f:
-            data = Entry()
-            check = data.parse(line)
-            if check is False:
+            data = Entry(line)
+            if data.valid is False:
                 continue
             self.entries.append(data)
             data.show()
