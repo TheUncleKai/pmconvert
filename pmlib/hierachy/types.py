@@ -21,18 +21,36 @@ from typing import Union
 
 __all__ = [
     "Type",
-    "get_type",
-
+    "Folder",
     "State",
-    "get_state"
+
+    "get_state",
+    "get_type"
 ]
 
 
 class Type(Enum):
 
-    mailbox = 2
-    tray = 1
+    unknown = -1
     folder = 0
+    tray = 1
+    mailbox = 2
+
+
+class Folder(Enum):
+
+    unknown = -1
+    pegasus = 0
+    unix = 1
+
+
+class State(Enum):
+
+    unknown = -1
+    closed = 0
+    open = 1
+    closed_unread = 2
+    open_unread = 3
 
 
 def get_type(value: int) -> Union[Type, None]:
@@ -43,14 +61,6 @@ def get_type(value: int) -> Union[Type, None]:
             _ret = _item
             break
     return _ret
-
-
-class State(Enum):
-
-    closed = 0
-    open = 1
-    closed_unread = 2
-    open_unread = 3
 
 
 def get_state(value: int) -> Union[State, None]:

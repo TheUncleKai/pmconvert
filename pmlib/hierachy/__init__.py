@@ -51,7 +51,7 @@ class Hierarchy(object):
 
         f = open(filename, mode='r')
         for line in f:
-            data = Entry(line)
+            data = Entry(line, folder)
             if data.valid is False:
                 continue
             if data.name == root:

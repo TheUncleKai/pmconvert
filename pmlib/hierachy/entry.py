@@ -17,11 +17,12 @@
 #
 
 import re
+import os
 from typing import Union, Any, List
 from dataclasses import dataclass, field
 
 import pmlib
-from pmlib.hierachy.types import Type, State, get_type, get_state
+from pmlib.hierachy.types import Type, Folder, State, get_type, get_state
 
 __all__ = [
     "Entry"
@@ -56,9 +57,12 @@ class _Object(object):
 @dataclass(init=False)
 class _Folder(object):
 
-    id: str
-    folder: str
-    name: str
+    id: str = ""
+    folder: str = ""
+    name: str = ""
+    type: Folder = Folder.unknown
+    filename: str = ""
+    indexname: str = ""
     valid: bool = False
 
     def __repr__(self):
@@ -78,8 +82,8 @@ class _Folder(object):
 @dataclass(init=False)
 class _Entry(object):
 
-    type: Type
-    state: State
+    type: Type = Type.unknown
+    state: State = State.unknown
 
     data: Union[_Object, _Folder] = None
     children: List[Any] = field(default_factory=list)
@@ -101,7 +105,44 @@ class Entry(_Entry):
     def __repr__(self):
         return self.name
 
-    def __init__(self, line: str):
+    def _check_folder(self, root: str) -> bool:
+        if self.data is None:
+            pmlib.log.error("No folder object found!")
+            return False
+
+        filename = os.path.normpath("{0:s}/{1:s}.PMM".format(root, self.data.name))
+        if os.path.exists(filename):
+            self.data.type = Folder.pegasus
+            self.data.filename = filename
+
+        filename = os.path.normpath("{0:s}/{1:s}.MBX".format(root, self.data.name))
+        if os.path.exists(filename):
+            self.data.type = Folder.unix
+            self.data.filename = filename
+
+        if self.data.type is Folder.unix:
+            filename = os.path.normpath("{0:s}/{1:s}.PMG".format(root, self.data.name))
+            if os.path.exists(filename):
+                self.data.indexname = filename
+            else:
+                pmlib.log.warn(self.data.name, "Folder index not found or unknown!")
+                return False
+
+        if self.data.type is Folder.pegasus:
+            filename = os.path.normpath("{0:s}/{1:s}.PMI".format(root, self.data.name))
+            if os.path.exists(filename):
+                self.data.indexname = filename
+            else:
+                pmlib.log.warn(self.data.name, "Folder index not found or unknown!")
+                return False
+
+        if self.data.type is Folder.unknown:
+            pmlib.log.warn(self.data.name, "Folder not found or unknown!")
+            return False
+
+        return True
+
+    def __init__(self, line: str, root: str):
         m = _entry.search(line)
         if m is None:
             return
@@ -130,6 +171,11 @@ class Entry(_Entry):
         if self.type is None or self.state is None:
             return
 
+        if self.type is Type.folder:
+            check = self._check_folder(root)
+            if check is False:
+                return
+
         self.valid = True
         return
 
@@ -143,6 +189,7 @@ class Entry(_Entry):
 
             if _item.parent_id == self.id:
                 self.children.append(_item)
+                _item.parent = self
 
                 if _item.type is Type.folder:
                     _item.is_sorted = True
