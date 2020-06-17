@@ -18,9 +18,10 @@
 
 import os
 from optparse import OptionParser
+from typing import Union
 
 import pmlib
-from pmlib.hierachy import Hierarchy
+from pmlib.mailbox import Mailbox
 
 
 class Console(object):
@@ -32,7 +33,7 @@ class Console(object):
         self.root: str = ""
         self.hierachy_file: str = ""
 
-        self.hierarchy: Hierarchy = Hierarchy()
+        self.mailbox: Union[Mailbox, None] = None
 
         usage = "usage: %prog [options] arg1 arg2"
         self.parser: OptionParser = OptionParser(usage=usage)
@@ -54,17 +55,18 @@ class Console(object):
         self.folder = options.folder
         self.root = options.root
         self.hierachy_file = options.hierachy
+
+        self.mailbox = Mailbox(self.root)
+
         pmlib.log.inform("Mail folder", "{0:s}".format(self.folder))
         return True
 
     def run(self) -> bool:
-        count = self.hierarchy.parse(self.folder, self.root)
-        if count == 0:
+        check = self.mailbox.init(self.folder)
+        if check is False:
             return False
 
-        self.hierarchy.sort()
-        if self.hierachy_file is not None:
-            self.hierarchy.export_json(self.hierachy_file)
+
         return True
 
     def close(self) -> bool:
