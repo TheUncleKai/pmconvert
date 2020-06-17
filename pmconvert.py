@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     console = pmlib.log.get_writer("console")
     fileio = pmlib.log.get_writer("file")
-    filename = full_path("{0:s}/run-tests.log".format(os.getcwd()))
+    filename = full_path("{0:s}/pmconvert.log".format(os.getcwd()))
 
     console.setup(text_space=15, error_index=["ERROR", "EXCEPTION"])
     fileio.setup(text_space=15, error_index=["ERROR", "EXCEPTION"], filename=filename)

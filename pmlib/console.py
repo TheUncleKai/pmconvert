@@ -30,6 +30,7 @@ class Console(object):
         self.options = None
         self.folder: str = ""
         self.root: str = ""
+        self.hierachy_file: str = ""
 
         self.hierarchy: Hierarchy = Hierarchy()
 
@@ -39,6 +40,7 @@ class Console(object):
                                default=0)
         self.parser.add_option("-f", "--folder", help="pegasus mail folder", type="string", default="")
         self.parser.add_option("-r", "--root", help="pegasus mail root mailbox", type="string", default="My mailbox")
+        self.parser.add_option("-a", "--hierachy", help="hierachy json file", type="string", default=None)
         return
 
     def prepare(self) -> bool:
@@ -51,6 +53,7 @@ class Console(object):
 
         self.folder = options.folder
         self.root = options.root
+        self.hierachy_file = options.hierachy
         pmlib.log.inform("Mail folder", "{0:s}".format(self.folder))
         return True
 
@@ -60,7 +63,8 @@ class Console(object):
             return False
 
         self.hierarchy.sort()
-
+        if self.hierachy_file is not None:
+            self.hierarchy.export_json(self.hierachy_file)
         return True
 
     def close(self) -> bool:

@@ -22,6 +22,8 @@ from typing import Union, List
 import pmlib
 
 from pmlib.hierachy.entry import Entry
+from pmlib.hierachy.types import Type
+import json
 
 __all__ = [
     "entry",
@@ -29,6 +31,10 @@ __all__ = [
 
     "Hierarchy"
 ]
+
+
+def sort_name(item: Entry):
+    return item.name
 
 
 class Hierarchy(object):
@@ -58,7 +64,6 @@ class Hierarchy(object):
                 data.is_root = True
                 self.root = data
             self.entries.append(data)
-            data.show()
             self.count += 1
         f.close()
 
@@ -72,6 +77,31 @@ class Hierarchy(object):
 
         pmlib.log.inform("Hierarchy", "{0:d} entries found!".format(self.count))
         return True
+
+    def _write_entry(self, root: list, item: Entry):
+
+        if item.type is Type.folder:
+            root.append(item.name)
+        else:
+            content = []
+            for _item in sorted(item.children, key=sort_name):
+                self._write_entry(content, _item)
+            root.append({item.name: content})
+
+        return
+
+    def export_json(self, filename: str):
+        root = []
+
+        self._write_entry(root, self.root)
+
+        file = os.path.abspath(os.path.normpath(filename))
+        pmlib.log.inform("Hierarchy", "Export hierarchy to {0:s}".format(file))
+
+        f = open(file, mode="w")
+        json.dump(root, f, indent=4)
+        f.close()
+        return
 
     def sort(self):
         self.root.populate(self.entries)

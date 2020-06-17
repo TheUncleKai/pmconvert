@@ -196,7 +196,3 @@ class Entry(_Entry):
 
         self.is_sorted = True
         return
-
-    def show(self):
-        pmlib.log.inform("Entry", "{0:s},{1:s},{2:s}".format(self.type.name, self.state.name, self.name))
-        return
