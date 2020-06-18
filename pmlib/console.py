@@ -66,6 +66,10 @@ class Console(object):
         if check is False:
             return False
 
+        check = self.mailbox.open()
+        if check is False:
+            return False
+
         return True
 
     def close(self) -> bool:

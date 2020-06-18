@@ -28,7 +28,7 @@ __all__ = [
     "Object",
     "Folder",
     "EntryData",
-    "Reader"
+    "Position"
 ]
 
 
@@ -101,7 +101,7 @@ class EntryData(object):
 
     data: Union[Object, Folder] = None
     children: List[Any] = field(default_factory=list)
-    mails: List[str] = field(default_factory=list)
+    mails: List[bytes] = field(default_factory=list)
 
     parent: Any = None
     parent_id: str = ""
@@ -115,13 +115,13 @@ class EntryData(object):
         return self.data.id
 
 
-class Reader(metaclass=ABCMeta):
+@dataclass()
+class Position(object):
 
-    def __init__(self, entry: EntryData, mail: list):
-        self.data: EntryData = entry
-        self.mail: list = mail
-        return
+    start: int = 0
+    end: int = 0
 
-    @abc.abstractmethod
-    def open(self) -> bool:
-        pass
+    @property
+    def length(self) -> int:
+        return self.end - self.start
+

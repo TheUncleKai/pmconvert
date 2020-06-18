@@ -82,6 +82,7 @@ class Item(EntryData):
         parent_id = Object(m_object)
 
         self.children = []
+        self.mails = []
         self.type = get_entry_type(int(m.group("Type")))
         self.state = get_entry_state(int(m.group("State")))
         self.name = str(m.group("Name"))
