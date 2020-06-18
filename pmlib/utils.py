@@ -15,20 +15,26 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
+from typing import Union
 
-import abc
-from abc import ABCMeta
-
-from pmlib.hierachy.entry import Entry
+from pmlib.types import TypeEntry, EntryState
 
 
-class Folder(metaclass=ABCMeta):
+def get_entry_type(value: int) -> Union[TypeEntry, None]:
+    _ret = None
 
-    def __init__(self, entry: Entry):
-        self.folder: Entry = entry
-        self.mail: list = []
-        return
+    for _item in TypeEntry:
+        if _item.value == value:
+            _ret = _item
+            break
+    return _ret
 
-    @abc.abstractmethod
-    def open(self) -> bool:
-        pass
+
+def get_entry_state(value: int) -> Union[EntryState, None]:
+    _ret = None
+
+    for _item in EntryState:
+        if _item.value == value:
+            _ret = _item
+            break
+    return _ret
