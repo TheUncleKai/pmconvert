@@ -22,6 +22,7 @@ from enum import Enum
 from typing import Match, Union, List, Any
 
 __all__ = [
+    "ExportFormat",
     "TypeEntry",
     "TypeFolder",
     "EntryState",
@@ -30,6 +31,13 @@ __all__ = [
     "EntryData",
     "Position"
 ]
+
+
+class ExportFormat(Enum):
+
+    unknown = -1
+    mbox = 0
+    maildir = 1
 
 
 class TypeEntry(Enum):
@@ -100,9 +108,11 @@ class EntryData(object):
     state: EntryState = EntryState.unknown
 
     data: Union[Object, Folder] = None
+    size: int = 0
+    count: int = 0
     children: List[Any] = field(default_factory=list)
     mails: List[bytes] = field(default_factory=list)
-
+    target: str = ""
     parent: Any = None
     parent_id: str = ""
     name: str = ""

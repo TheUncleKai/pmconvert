@@ -15,9 +15,23 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
+
+import os
 from typing import Union
 
+import pmlib
 from pmlib.types import TypeEntry, EntryState
+
+
+def create_folder(folder: str) -> bool:
+    if os.path.exists(folder) is False:
+        try:
+            os.mkdir(folder)
+        except OSError as e:
+            pmlib.log.exception(e)
+            return False
+
+    return True
 
 
 def get_entry_type(value: int) -> Union[TypeEntry, None]:

@@ -131,3 +131,22 @@ class Item(EntryData):
 
         self.is_sorted = True
         return
+
+    def _set_target(self, target: str, path: str, item: EntryData) -> str:
+        if path == "":
+            ret = target
+        else:
+            ret = path
+
+        if item.parent is None:
+            ret = "{0:s}/{1:s}".format(ret, item.name)
+        else:
+            _data = self._set_target(target, ret, item.parent)
+            ret = "{0:s}/{1:s}".format(_data, item.name)
+
+        result = os.path.abspath(os.path.normpath(ret))
+        return result
+
+    def set_target(self, target: str):
+        self.target = self._set_target(target, "", self)
+        return
