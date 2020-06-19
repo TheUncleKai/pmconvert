@@ -17,7 +17,10 @@
 #
 
 __all__ = [
-    "console"
+    "console",
+
+    "hierachy",
+    "mailbox"
 ]
 
 

@@ -15,18 +15,14 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
-
-import re
 import os
-from typing import Union, Any, List
-from dataclasses import dataclass, field
+import re
+from typing import List
 
 import pmlib
-from pmlib.hierachy.types import Type, Folder, State, get_type, get_state
+from pmlib.types import TypeFolder, TypeEntry, Folder, Object, EntryData
 
-__all__ = [
-    "Entry"
-]
+from pmlib.utils import get_entry_type, get_entry_state
 
 
 _entry = re.compile("(?P<Type>[0-9]+),(?P<State>[0-9]+),\"(?P<Data>.+)\",\"(?P<Parent>.*)\",\"(?P<Name>.*)\"")
@@ -34,73 +30,7 @@ _object = re.compile("(?P<ID>.+):(?P<Name>.+)")
 _folder = re.compile("(?P<ID>.+):(?P<Folder>.+):(?P<Name>.+)")
 
 
-@dataclass(init=False)
-class _Object(object):
-
-    id: str
-    name: str
-    valid: bool = False
-
-    def __repr__(self):
-        return self.id
-
-    def __init__(self, data: str):
-        m = _object.search(data)
-        if m is None:
-            return
-        self.id = m.group("ID")
-        self.name = m.group("Name")
-        self.valid = True
-        return
-
-
-@dataclass(init=False)
-class _Folder(object):
-
-    id: str = ""
-    folder: str = ""
-    name: str = ""
-    type: Folder = Folder.unknown
-    filename: str = ""
-    indexname: str = ""
-    valid: bool = False
-
-    def __repr__(self):
-        return self.id
-
-    def __init__(self, data: str):
-        m = _folder.search(data)
-        if m is None:
-            return
-        self.id = m.group("ID")
-        self.folder = m.group("Folder")
-        self.name = m.group("Name")
-        self.valid = True
-        return
-
-
-@dataclass(init=False)
-class _Entry(object):
-
-    type: Type = Type.unknown
-    state: State = State.unknown
-
-    data: Union[_Object, _Folder] = None
-    children: List[Any] = field(default_factory=list)
-
-    parent: Any = None
-    parent_id: str = ""
-    name: str = ""
-    valid: bool = False
-    is_root: bool = False
-    is_sorted: bool = False
-
-    @property
-    def id(self) -> str:
-        return self.data.id
-
-
-class Entry(_Entry):
+class Item(EntryData):
 
     def __repr__(self):
         return self.name
@@ -112,15 +42,15 @@ class Entry(_Entry):
 
         filename = os.path.normpath("{0:s}/{1:s}.PMM".format(root, self.data.name))
         if os.path.exists(filename):
-            self.data.type = Folder.pegasus
+            self.data.type = TypeFolder.pegasus
             self.data.filename = filename
 
         filename = os.path.normpath("{0:s}/{1:s}.MBX".format(root, self.data.name))
         if os.path.exists(filename):
-            self.data.type = Folder.unix
+            self.data.type = TypeFolder.unix
             self.data.filename = filename
 
-        if self.data.type is Folder.unix:
+        if self.data.type is TypeFolder.unix:
             filename = os.path.normpath("{0:s}/{1:s}.PMG".format(root, self.data.name))
             if os.path.exists(filename):
                 self.data.indexname = filename
@@ -128,7 +58,7 @@ class Entry(_Entry):
                 pmlib.log.warn(self.data.name, "Folder index not found or unknown!")
                 return False
 
-        if self.data.type is Folder.pegasus:
+        if self.data.type is TypeFolder.pegasus:
             filename = os.path.normpath("{0:s}/{1:s}.PMI".format(root, self.data.name))
             if os.path.exists(filename):
                 self.data.indexname = filename
@@ -136,7 +66,7 @@ class Entry(_Entry):
                 pmlib.log.warn(self.data.name, "Folder index not found or unknown!")
                 return False
 
-        if self.data.type is Folder.unknown:
+        if self.data.type is TypeFolder.unknown:
             pmlib.log.warn(self.data.name, "Folder not found or unknown!")
             return False
 
@@ -147,22 +77,27 @@ class Entry(_Entry):
         if m is None:
             return
 
-        parent_id = _Object(m.group("Parent"))
+        m_object = _object.search(m.group("Parent"))
+
+        parent_id = Object(m_object)
 
         self.children = []
-        self.type = get_type(int(m.group("Type")))
-        self.state = get_state(int(m.group("State")))
+        self.mails = []
+        self.type = get_entry_type(int(m.group("Type")))
+        self.state = get_entry_state(int(m.group("State")))
         self.name = str(m.group("Name"))
 
         if parent_id.valid is True:
             self.parent_id = parent_id.id
 
-        if self.type is Type.folder:
-            data = _Folder(m.group("Data"))
+        if self.type is TypeEntry.folder:
+            m_folder = _folder.search(m.group("Data"))
+            data = Folder(m_folder)
             if data.valid is True:
                 self.data = data
         else:
-            data = _Object(m.group("Data"))
+            m_object = _object.search(m.group("Data"))
+            data = Object(m_object)
             if data.valid is True:
                 self.data = data
         if self.data is None:
@@ -171,7 +106,7 @@ class Entry(_Entry):
         if self.type is None or self.state is None:
             return
 
-        if self.type is Type.folder:
+        if self.type is TypeEntry.folder:
             check = self._check_folder(root)
             if check is False:
                 return
@@ -179,7 +114,7 @@ class Entry(_Entry):
         self.valid = True
         return
 
-    def populate(self, datalist: List[_Entry]):
+    def populate(self, datalist: List[EntryData]):
         if self.is_sorted is True:
             return
 
@@ -191,7 +126,7 @@ class Entry(_Entry):
                 self.children.append(_item)
                 _item.parent = self
 
-                if _item.type is Type.folder:
+                if _item.type is TypeEntry.folder:
                     _item.is_sorted = True
 
         self.is_sorted = True

@@ -15,58 +15,25 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
-
-from enum import Enum
 from typing import Union
 
-__all__ = [
-    "Type",
-    "Folder",
-    "State",
-
-    "get_state",
-    "get_type"
-]
+from pmlib.types import TypeEntry, EntryState
 
 
-class Type(Enum):
-
-    unknown = -1
-    folder = 0
-    tray = 1
-    mailbox = 2
-
-
-class Folder(Enum):
-
-    unknown = -1
-    pegasus = 0
-    unix = 1
-
-
-class State(Enum):
-
-    unknown = -1
-    closed = 0
-    open = 1
-    closed_unread = 2
-    open_unread = 3
-
-
-def get_type(value: int) -> Union[Type, None]:
+def get_entry_type(value: int) -> Union[TypeEntry, None]:
     _ret = None
 
-    for _item in Type:
+    for _item in TypeEntry:
         if _item.value == value:
             _ret = _item
             break
     return _ret
 
 
-def get_state(value: int) -> Union[State, None]:
+def get_entry_state(value: int) -> Union[EntryState, None]:
     _ret = None
 
-    for _item in State:
+    for _item in EntryState:
         if _item.value == value:
             _ret = _item
             break

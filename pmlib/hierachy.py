@@ -21,19 +21,16 @@ from typing import Union, List
 
 import pmlib
 
-from pmlib.hierachy.entry import Entry
-from pmlib.hierachy.types import Type
+from pmlib.item import Item
+from pmlib.types import TypeEntry
 import json
 
 __all__ = [
-    "entry",
-    "types",
-
     "Hierarchy"
 ]
 
 
-def sort_name(item: Entry):
+def _sort_name(item: Item):
     return item.name
 
 
@@ -41,10 +38,10 @@ class Hierarchy(object):
 
     def __init__(self):
 
-        self.root: Union[Entry, None] = None
+        self.root: Union[Item, None] = None
         self.count: int = 0
-        self.entries: List[Entry] = []
-        self.root: Union[Entry, None] = None
+        self.entries: List[Item] = []
+        self.root: Union[Item, None] = None
         return
 
     def parse(self, folder: str, root: str) -> bool:
@@ -57,7 +54,7 @@ class Hierarchy(object):
 
         f = open(filename, mode='r')
         for line in f:
-            data = Entry(line, folder)
+            data = Item(line, folder)
             if data.valid is False:
                 continue
             if data.name == root:
@@ -78,13 +75,13 @@ class Hierarchy(object):
         pmlib.log.inform("Hierarchy", "{0:d} entries found!".format(self.count))
         return True
 
-    def _write_entry(self, root: list, item: Entry):
+    def _write_entry(self, root: list, item: Item):
 
-        if item.type is Type.folder:
+        if item.type is TypeEntry.folder:
             root.append(item.name)
         else:
             content = []
-            for _item in sorted(item.children, key=sort_name):
+            for _item in sorted(item.children, key=_sort_name):
                 self._write_entry(content, _item)
             root.append({item.name: content})
 
@@ -103,10 +100,21 @@ class Hierarchy(object):
         f.close()
         return
 
-    def sort(self):
+    def _add_folder(self, folder: List[Item], item: Item):
+        if item.type is TypeEntry.folder:
+            folder.append(item)
+            return
+
+        if len(item.children) != 0:
+            for _item in item.children:
+                self._add_folder(folder, _item)
+        return
+
+    def sort(self, folder: List[Item]):
         self.root.populate(self.entries)
 
         for _item in self.entries:
             _item.populate(self.entries)
 
+        self._add_folder(folder, self.root)
         return
