@@ -24,9 +24,13 @@ import email
 import pmlib
 
 from pmlib.hierachy import Hierarchy
-from pmlib.types import TypeFolder, TypeEntry, Position, ExportFormat
+from pmlib.types import TypeEntry, Position, ExportFormat
 from pmlib.item import Item
 from pmlib.utils import create_folder
+
+
+def _sort_name(item: Item):
+    return item.name
 
 
 class Mailbox(object):
@@ -52,8 +56,6 @@ class Mailbox(object):
 
     @staticmethod
     def _open_pegasus(item: Item) -> bool:
-        pmlib.log.inform("Folder", "Open {0:s}".format(item.name))
-
         positions = []
 
         f = open(item.data.filename, mode='rb')
@@ -92,7 +94,7 @@ class Mailbox(object):
         mbox = mailbox.mbox(path)
         mbox.lock()
 
-        pmlib.log.inform("EXPORT", "Export {0:s} with {1:d} (2:d)".format(path, item.count, item.size))
+        pmlib.log.inform("EXPORT", "Export {0:s} with {1:d} ({2:d})".format(item.name, item.count, item.size))
         for _data in item.mails:
             msg = email.message_from_bytes(_data)
             mbox.add(msg)
@@ -148,7 +150,7 @@ class Mailbox(object):
         else:
             pmlib.log.inform("TRAY", item.name)
 
-            for _item in item.children:
+            for _item in sorted(item.children, key=_sort_name):
                 check = self._export(_item, export)
                 if check is False:
                     return False
