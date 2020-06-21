@@ -106,7 +106,7 @@ class ConvertPMM2MBox(Converter):
             msg = email.message_from_bytes(value)
             try:
                 self.mbox.add(msg)
-            except UnicodeEncodeError as e:
+            except UnicodeEncodeError:
                 self._store_fault(n, value)
 
             self.mbox.flush()
