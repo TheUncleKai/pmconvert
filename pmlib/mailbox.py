@@ -22,7 +22,7 @@ import pmlib
 
 from pmlib.convert import Convert
 from pmlib.hierachy import Hierarchy
-from pmlib.types import Entry, Target
+from pmlib.types import Entry
 from pmlib.item import Item
 from pmlib.utils import create_folder
 
@@ -51,7 +51,7 @@ class Mailbox(object):
         return True
 
     def _create_folder(self, item: Item) -> bool:
-        item.set_target(pmlib.config.target_path)
+        item.set_target()
 
         if item.type is Entry.folder:
             return True
@@ -97,7 +97,7 @@ class Mailbox(object):
             if check is False:
                 return False
         else:
-            pmlib.log.inform("TRAY", item.name)
+            pmlib.log.inform("TRAY", item.full_name)
 
             for _item in sorted(item.children, key=_sort_name):
                 check = self._export(_item)

@@ -111,6 +111,7 @@ class EntryData(object):
     count: int = 0
     children: List[Any] = field(default_factory=list)
     target: str = ""
+    full_name: str = ""
     parent: Any = None
     parent_id: str = ""
     name: str = ""

@@ -149,6 +149,23 @@ class Item(EntryData):
         result = os.path.abspath(os.path.normpath(ret))
         return result
 
-    def set_target(self, target: str):
-        self.target = self._set_target(target, "", self)
+    def _set_full_name(self, path: str, item: EntryData) -> str:
+        ret = ""
+        if path != "":
+            ret = path
+
+        if item.parent is None:
+            if ret == "":
+                ret = "{0:s}".format(item.name)
+            else:
+                ret = "{0:s}\\{1:s}".format(ret, item.name)
+        else:
+            _data = self._set_full_name(ret, item.parent)
+            ret = "{0:s}\\{1:s}".format(_data, item.name)
+
+        return ret
+
+    def set_target(self):
+        self.target = self._set_target(pmlib.config.target_path, "", self)
+        self.full_name = self._set_full_name("", self)
         return
