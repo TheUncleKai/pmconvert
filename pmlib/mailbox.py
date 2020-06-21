@@ -71,10 +71,11 @@ class Mailbox(object):
     def _convert(self, item: Item) -> bool:
         converter = self._conv.get_converter(item.data.type)
         if converter is None:
-            pmlib.log.error(
-                "Unable to convert folder {0:s} with type {1:s} to {2:s}".format(item.name, item.data.type.name,
-                                                                                 pmlib.config.target_type.name))
-            return False
+            text = "Unable to convert folder {0:s} with type {1:s} to {2:s}".format(item.name,
+                                                                                    item.data.type.name,
+                                                                                    pmlib.config.target_type.name)
+            pmlib.log.warn("Mailbox", text)
+            return True
 
         check = converter.prepare(item)
         if check is False:

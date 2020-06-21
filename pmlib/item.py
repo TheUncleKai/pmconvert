@@ -121,9 +121,6 @@ class Item(EntryData):
             return
 
         for _item in datalist:
-            if _item.is_sorted is True:
-                continue
-
             if _item.parent_id == self.id:
                 self.children.append(_item)
                 _item.parent = self

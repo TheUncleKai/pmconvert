@@ -16,6 +16,7 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+import os
 import mailbox
 import email
 
@@ -36,6 +37,7 @@ class ConvertPMM2MBox(Converter):
 
     def __init__(self):
         Converter.__init__(self)
+        self.errors: list = []
         self.source = Source.pegasus
         self.target = Target.mbox
         self.mbox: Union[mailbox.mbox, None] = None
@@ -58,6 +60,17 @@ class ConvertPMM2MBox(Converter):
         self.mbox = mailbox.mbox(path)
         self.mbox.lock()
         return True
+
+    def _store_fault(self, number: int, value: bytes):
+        filename = "{0:s}_{1:d}.eml".format(self.item.target, number)
+        filename = os.path.abspath(os.path.normpath(filename))
+
+        self.errors.append("Unable to decode mail {0:d} in {1:s}".format(number, self.item.name))
+
+        f = open(filename, mode="wb")
+        f.write(value)
+        f.close()
+        return
 
     def run(self) -> bool:
         n = 0
@@ -86,14 +99,32 @@ class ConvertPMM2MBox(Converter):
 
         progress = pmlib.log.progress(self.item.count)
 
+        n = 0
         for _pos in self.positions:
             value = stream[_pos.start:_pos.end]
+
+            # m = 0
+            # for i in range(len(value)):
+            #     _n = value[i:i+1]
+            #     _num = ord(_n)
+            #     if _num > 128:
+            #         pmlib.log.error("Stream out of range: {0:d}, pos {1:d}".format(_num, m))
+            #     m += 1
+
             msg = email.message_from_bytes(value)
-            self.mbox.add(msg)
+            try:
+                self.mbox.add(msg)
+            except UnicodeEncodeError as e:
+                self._store_fault(n, value)
+
             self.mbox.flush()
             progress.inc()
+            n += 1
 
         pmlib.log.clear()
+
+        for _error in self.errors:
+            pmlib.log.error(_error)
         return True
 
     def close(self) -> bool:
