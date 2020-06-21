@@ -22,7 +22,7 @@ from typing import Union, List
 import pmlib
 
 from pmlib.item import Item
-from pmlib.types import TypeEntry
+from pmlib.types import Entry
 import json
 
 __all__ = [
@@ -77,7 +77,7 @@ class Hierarchy(object):
 
     def _write_entry(self, root: list, item: Item):
 
-        if item.type is TypeEntry.folder:
+        if item.type is Entry.folder:
             root.append(item.name)
         else:
             content = []
@@ -101,7 +101,7 @@ class Hierarchy(object):
         return
 
     def _add_folder(self, folder: List[Item], item: Item):
-        if item.type is TypeEntry.folder:
+        if item.type is Entry.folder:
             folder.append(item)
             return
 

@@ -17,10 +17,13 @@
 #
 
 __all__ = [
+    "convert",
     "console",
-
     "hierachy",
-    "mailbox"
+    "item",
+    "mailbox",
+    "types",
+    "utils"
 ]
 
 

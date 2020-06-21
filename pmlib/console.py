@@ -22,7 +22,7 @@ from typing import Union
 
 import pmlib
 from pmlib.mailbox import Mailbox
-from pmlib.types import ExportFormat
+from pmlib.types import Target
 from pmlib.utils import create_folder
 
 
@@ -35,7 +35,7 @@ class Console(object):
         self.root: str = ""
         self.hierachy_file: str = ""
         self.target: str = ""
-        self.export: ExportFormat = ExportFormat.unknown
+        self.export: Target = Target.unknown
 
         self.mailbox: Union[Mailbox, None] = None
 
@@ -68,12 +68,12 @@ class Console(object):
             return False
 
         if options.export == "mbox":
-            self.export = ExportFormat.mbox
+            self.export = Target.mbox
 
         if options.export == "maildir":
-            self.export = ExportFormat.maildir
+            self.export = Target.maildir
 
-        if self.export is ExportFormat.unknown:
+        if self.export is Target.unknown:
             pmlib.log.error("Invalid export format: {0:s}".format(options.export))
             return False
 

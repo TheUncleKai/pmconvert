@@ -15,17 +15,16 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
-import abc
-from abc import ABCMeta
+
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Match, Union, List, Any
 
 __all__ = [
-    "ExportFormat",
-    "TypeEntry",
-    "TypeFolder",
-    "EntryState",
+    "Entry",
+    "Source",
+    "Target",
+    "State",
     "Object",
     "Folder",
     "EntryData",
@@ -33,14 +32,7 @@ __all__ = [
 ]
 
 
-class ExportFormat(Enum):
-
-    unknown = -1
-    mbox = 0
-    maildir = 1
-
-
-class TypeEntry(Enum):
+class Entry(Enum):
 
     unknown = -1
     folder = 0
@@ -48,14 +40,21 @@ class TypeEntry(Enum):
     mailbox = 2
 
 
-class TypeFolder(Enum):
+class Source(Enum):
 
     unknown = -1
     pegasus = 0
     unix = 1
 
 
-class EntryState(Enum):
+class Target(Enum):
+
+    unknown = -1
+    mbox = 0
+    maildir = 1
+
+
+class State(Enum):
 
     unknown = -1
     closed = 0
@@ -87,7 +86,7 @@ class Object(object):
 class Folder(Object):
 
     folder: str = ""
-    type: TypeFolder = TypeFolder.unknown
+    type: Source = Source.unknown
     filename: str = ""
     indexname: str = ""
 
@@ -104,14 +103,13 @@ class Folder(Object):
 @dataclass(init=False)
 class EntryData(object):
 
-    type: TypeEntry = TypeEntry.unknown
-    state: EntryState = EntryState.unknown
+    type: Entry = Entry.unknown
+    state: State = State.unknown
 
     data: Union[Object, Folder] = None
     size: int = 0
     count: int = 0
     children: List[Any] = field(default_factory=list)
-    mails: List[bytes] = field(default_factory=list)
     target: str = ""
     parent: Any = None
     parent_id: str = ""
@@ -134,4 +132,3 @@ class Position(object):
     @property
     def length(self) -> int:
         return self.end - self.start
-

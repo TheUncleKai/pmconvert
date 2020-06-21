@@ -20,7 +20,7 @@ import re
 from typing import List
 
 import pmlib
-from pmlib.types import TypeFolder, TypeEntry, Folder, Object, EntryData
+from pmlib.types import Source, Entry, Folder, Object, EntryData
 
 from pmlib.utils import get_entry_type, get_entry_state
 
@@ -42,15 +42,15 @@ class Item(EntryData):
 
         filename = os.path.normpath("{0:s}/{1:s}.PMM".format(root, self.data.name))
         if os.path.exists(filename):
-            self.data.type = TypeFolder.pegasus
+            self.data.type = Source.pegasus
             self.data.filename = filename
 
         filename = os.path.normpath("{0:s}/{1:s}.MBX".format(root, self.data.name))
         if os.path.exists(filename):
-            self.data.type = TypeFolder.unix
+            self.data.type = Source.unix
             self.data.filename = filename
 
-        if self.data.type is TypeFolder.unix:
+        if self.data.type is Source.unix:
             filename = os.path.normpath("{0:s}/{1:s}.PMG".format(root, self.data.name))
             if os.path.exists(filename):
                 self.data.indexname = filename
@@ -58,7 +58,7 @@ class Item(EntryData):
                 pmlib.log.warn(self.data.name, "Folder index not found or unknown!")
                 return False
 
-        if self.data.type is TypeFolder.pegasus:
+        if self.data.type is Source.pegasus:
             filename = os.path.normpath("{0:s}/{1:s}.PMI".format(root, self.data.name))
             if os.path.exists(filename):
                 self.data.indexname = filename
@@ -66,7 +66,7 @@ class Item(EntryData):
                 pmlib.log.warn(self.data.name, "Folder index not found or unknown!")
                 return False
 
-        if self.data.type is TypeFolder.unknown:
+        if self.data.type is Source.unknown:
             pmlib.log.warn(self.data.name, "Folder not found or unknown!")
             return False
 
@@ -90,7 +90,7 @@ class Item(EntryData):
         if parent_id.valid is True:
             self.parent_id = parent_id.id
 
-        if self.type is TypeEntry.folder:
+        if self.type is Entry.folder:
             m_folder = _folder.search(m.group("Data"))
             data = Folder(m_folder)
             if data.valid is True:
@@ -106,7 +106,7 @@ class Item(EntryData):
         if self.type is None or self.state is None:
             return
 
-        if self.type is TypeEntry.folder:
+        if self.type is Entry.folder:
             check = self._check_folder(root)
             if check is False:
                 return
@@ -126,7 +126,7 @@ class Item(EntryData):
                 self.children.append(_item)
                 _item.parent = self
 
-                if _item.type is TypeEntry.folder:
+                if _item.type is Entry.folder:
                     _item.is_sorted = True
 
         self.is_sorted = True
