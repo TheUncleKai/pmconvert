@@ -15,25 +15,39 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
+
+import os
 from typing import Union
 
-from pmlib.types import TypeEntry, EntryState
+import pmlib
+from pmlib.types import Entry, State
 
 
-def get_entry_type(value: int) -> Union[TypeEntry, None]:
+def create_folder(folder: str) -> bool:
+    if os.path.exists(folder) is False:
+        try:
+            os.mkdir(folder)
+        except OSError as e:
+            pmlib.log.exception(e)
+            return False
+
+    return True
+
+
+def get_entry_type(value: int) -> Union[Entry, None]:
     _ret = None
 
-    for _item in TypeEntry:
+    for _item in Entry:
         if _item.value == value:
             _ret = _item
             break
     return _ret
 
 
-def get_entry_state(value: int) -> Union[EntryState, None]:
+def get_entry_state(value: int) -> Union[State, None]:
     _ret = None
 
-    for _item in EntryState:
+    for _item in State:
         if _item.value == value:
             _ret = _item
             break

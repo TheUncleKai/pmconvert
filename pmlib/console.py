@@ -22,6 +22,8 @@ from typing import Union
 
 import pmlib
 from pmlib.mailbox import Mailbox
+from pmlib.types import Target
+from pmlib.utils import create_folder
 
 
 class Console(object):
@@ -32,16 +34,25 @@ class Console(object):
         self.folder: str = ""
         self.root: str = ""
         self.hierachy_file: str = ""
+        self.target: str = ""
+        self.export: Target = Target.unknown
 
         self.mailbox: Union[Mailbox, None] = None
 
         usage = "usage: %prog [options] arg1 arg2"
         self.parser: OptionParser = OptionParser(usage=usage)
-        self.parser.add_option("-v", "--verbose", help="run verbose level [0..3]", metavar="1", type="int",
+        self.parser.add_option("-v", "--verbose", help="run verbose level [0..3]", type="int", metavar="1",
                                default=0)
-        self.parser.add_option("-f", "--folder", help="pegasus mail folder", type="string", default="")
-        self.parser.add_option("-r", "--root", help="pegasus mail root mailbox", type="string", default="My mailbox")
-        self.parser.add_option("-a", "--hierachy", help="hierachy json file", type="string", default=None)
+        self.parser.add_option("-f", "--folder", help="pegasus mail folder", type="string", metavar="<FOLDER>",
+                               default="")
+        self.parser.add_option("-r", "--root", help="pegasus mail root mailbox", type="string", metavar="<MAILBOX>",
+                               default="My mailbox")
+        self.parser.add_option("-a", "--hierachy", help="hierachy json file", type="string", metavar="<FILENAME>",
+                               default=None)
+        self.parser.add_option("-x", "--export", help="hierachy json file", type="string", metavar="mbox|maildir",
+                               default="mbox")
+        self.parser.add_option("-t", "--target", help="export target path", type="string", metavar="<FOLDER>",
+                               default="")
         return
 
     def prepare(self) -> bool:
@@ -52,13 +63,39 @@ class Console(object):
             pmlib.log.error("Unable to find mail folder: {0:s}".format(options.folder))
             return False
 
+        if options.target == "":
+            pmlib.log.error("Need to give target path!")
+            return False
+
+        if options.export == "mbox":
+            self.export = Target.mbox
+
+        if options.export == "maildir":
+            self.export = Target.maildir
+
+        if self.export is Target.unknown:
+            pmlib.log.error("Invalid export format: {0:s}".format(options.export))
+            return False
+
+        pmlib.log.setup(level=options.verbose)
+
         self.folder = options.folder
         self.root = options.root
         self.hierachy_file = options.hierachy
-
-        self.mailbox = Mailbox(self.root)
+        self.target = os.path.abspath(os.path.normpath(options.target))
 
         pmlib.log.inform("Mail folder", "{0:s}".format(self.folder))
+        pmlib.log.inform("Root Mailbox", "{0:s}".format(self.root))
+        pmlib.log.inform("Target folder", "{0:s}".format(self.target))
+        if self.hierachy_file:
+            pmlib.log.inform("Hierachy file", "{0:s}".format(self.hierachy_file))
+
+        check = create_folder(self.target)
+        if check is False:
+            pmlib.log.error("Unable to create target folder!")
+            return False
+
+        self.mailbox = Mailbox(self.root, self.target)
         return True
 
     def run(self) -> bool:
@@ -66,7 +103,7 @@ class Console(object):
         if check is False:
             return False
 
-        check = self.mailbox.open()
+        check = self.mailbox.convert(self.export)
         if check is False:
             return False
 

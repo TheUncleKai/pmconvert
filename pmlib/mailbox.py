@@ -20,20 +20,32 @@ from typing import List
 
 import pmlib
 
+from pmlib.convert import Convert
 from pmlib.hierachy import Hierarchy
-from pmlib.types import TypeFolder, Position
+from pmlib.types import Entry, Target
 from pmlib.item import Item
+from pmlib.utils import create_folder
+
+
+def _sort_name(item: Item):
+    return item.name
 
 
 class Mailbox(object):
 
-    def __init__(self, root: str):
+    def __init__(self, root: str, target: str):
+        self._conv: Convert = Convert()
+
+        self.target: str = target
         self.root: str = root
         self.hierarchy: Hierarchy = Hierarchy()
         self.folder: List[Item] = []
+        self.export: Target = Target.unknown
         return
 
     def init(self, folder: str, filename=None) -> bool:
+        self._conv.init()
+
         count = self.hierarchy.parse(folder, self.root)
         if count == 0:
             return False
@@ -45,45 +57,70 @@ class Mailbox(object):
 
         return True
 
-    def _open_pegasus(self, item: Item) -> bool:
-        pmlib.log.inform("Folder", "Open {0:s}".format(item.name))
+    def _create_folder(self, item: Item) -> bool:
+        item.set_target(self.target)
 
-        positions = []
+        if item.type is Entry.folder:
+            return True
 
-        f = open(item.data.filename, mode='rb')
-        byte = f.seek(128)  # move to first mail
+        check = create_folder(item.target)
+        if check is False:
+            pmlib.log.error("Unable to create target folder: {0:s}".format(item.target))
+            return False
 
-        n = 0
-        count = 1
-
-        stream = f.read(-1)
-        f.close()
-
-        pmlib.log.inform(item.name, "Size: {0:d}".format(len(stream)))
-
-        start = 0
-        for byte in stream:
-            if byte == 0x1a:  # 1A seperates the mails
-                pos = Position(start=start, end=n)
-                positions.append(pos)
-                count += 1
-                start = n + 1
-            n += 1
-
-        pmlib.log.inform(item.name, "Count {0:d}".format(len(positions)))
-
-        for _pos in positions:
-            value = stream[_pos.start:_pos.end]
-            item.mails.append(value)
+        for _item in item.children:
+            check = self._create_folder(_item)
+            if check is False:
+                return False
 
         return True
 
-    def open(self) -> bool:
+    def _convert(self, item: Item) -> bool:
+        converter = self._conv.get_converter(item.data.type, self.export)
+        if converter is None:
+            pmlib.log.error(
+                "Unable to convert folder {0:s} with type {1:s} to {2:s}".format(item.name, item.data.type.name,
+                                                                                 self.export.name))
+            return False
 
-        for item in self.folder:
-            if item.data.type is TypeFolder.pegasus:
-                check = self._open_pegasus(item)
+        check = converter.prepare(item)
+        if check is False:
+            return False
+
+        check = converter.run()
+        if check is False:
+            return False
+
+        check = converter.close()
+        if check is False:
+            return False
+
+        return True
+
+    def _export(self, item: Item) -> bool:
+
+        if item.type is Entry.folder:
+            check = self._convert(item)
+            if check is False:
+                return False
+        else:
+            pmlib.log.inform("TRAY", item.name)
+
+            for _item in sorted(item.children, key=_sort_name):
+                check = self._export(_item)
                 if check is False:
                     return False
+
+        return True
+
+    def convert(self, export: Target) -> bool:
+        self.export = export
+        check = self._create_folder(self.hierarchy.root)
+        if check is False:
+            return False
+
+        check = self._export(self.hierarchy.root)
+        if check is False:
+            return False
 
         return True
