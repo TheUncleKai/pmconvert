@@ -35,10 +35,12 @@ class Item(EntryData):
     def __repr__(self):
         return self.name
 
-    def _check_folder(self, root: str) -> bool:
+    def _check_folder(self) -> bool:
         if self.data is None:
             pmlib.log.error("No folder object found!")
             return False
+
+        root = pmlib.config.pegasus_path
 
         filename = os.path.normpath("{0:s}/{1:s}.PMM".format(root, self.data.name))
         if os.path.exists(filename):
@@ -72,7 +74,7 @@ class Item(EntryData):
 
         return True
 
-    def __init__(self, line: str, root: str):
+    def __init__(self, line: str):
         m = _entry.search(line)
         if m is None:
             return
@@ -107,7 +109,7 @@ class Item(EntryData):
             return
 
         if self.type is Entry.folder:
-            check = self._check_folder(root)
+            check = self._check_folder()
             if check is False:
                 return
 

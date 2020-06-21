@@ -23,7 +23,6 @@ import pmlib
 
 from pmlib.item import Item
 from pmlib.types import Entry
-import json
 
 __all__ = [
     "Hierarchy"
@@ -44,8 +43,8 @@ class Hierarchy(object):
         self.root: Union[Item, None] = None
         return
 
-    def parse(self, folder: str, root: str) -> bool:
-        filename = os.path.abspath(os.path.normpath("{0:s}/HIERARCH.PM".format(folder)))
+    def parse(self) -> bool:
+        filename = os.path.abspath(os.path.normpath("{0:s}/HIERARCH.PM".format(pmlib.config.pegasus_path)))
         if os.path.exists(filename) is False:
             pmlib.log.error("Unable to find HIERARCH.PM")
             return False
@@ -54,10 +53,10 @@ class Hierarchy(object):
 
         f = open(filename, mode='r')
         for line in f:
-            data = Item(line, folder)
+            data = Item(line)
             if data.valid is False:
                 continue
-            if data.name == root:
+            if data.name == pmlib.config.pegasus_root:
                 data.is_root = True
                 self.root = data
             self.entries.append(data)
@@ -87,19 +86,6 @@ class Hierarchy(object):
 
         return
 
-    def export_json(self, filename: str):
-        root = []
-
-        self._write_entry(root, self.root)
-
-        file = os.path.abspath(os.path.normpath(filename))
-        pmlib.log.inform("Hierarchy", "Export hierarchy to {0:s}".format(file))
-
-        f = open(file, mode="w")
-        json.dump(root, f, indent=4)
-        f.close()
-        return
-
     def _add_folder(self, folder: List[Item], item: Item):
         if item.type is Entry.folder:
             folder.append(item)
@@ -110,11 +96,11 @@ class Hierarchy(object):
                 self._add_folder(folder, _item)
         return
 
-    def sort(self, folder: List[Item]):
+    def sort(self, folder_list: List[Item]):
         self.root.populate(self.entries)
 
         for _item in self.entries:
             _item.populate(self.entries)
 
-        self._add_folder(folder, self.root)
+        self._add_folder(folder_list, self.root)
         return

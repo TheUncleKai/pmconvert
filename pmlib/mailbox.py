@@ -33,32 +33,25 @@ def _sort_name(item: Item):
 
 class Mailbox(object):
 
-    def __init__(self, root: str, target: str):
+    def __init__(self):
         self._conv: Convert = Convert()
 
-        self.target: str = target
-        self.root: str = root
         self.hierarchy: Hierarchy = Hierarchy()
-        self.folder: List[Item] = []
-        self.export: Target = Target.unknown
+        self.folder_list: List[Item] = []
         return
 
-    def init(self, folder: str, filename=None) -> bool:
+    def init(self) -> bool:
         self._conv.init()
 
-        count = self.hierarchy.parse(folder, self.root)
+        count = self.hierarchy.parse()
         if count == 0:
             return False
 
-        self.hierarchy.sort(self.folder)
-
-        if filename is not None:
-            self.hierarchy.export_json(filename)
-
+        self.hierarchy.sort(self.folder_list)
         return True
 
     def _create_folder(self, item: Item) -> bool:
-        item.set_target(self.target)
+        item.set_target(pmlib.config.target_path)
 
         if item.type is Entry.folder:
             return True
@@ -76,11 +69,11 @@ class Mailbox(object):
         return True
 
     def _convert(self, item: Item) -> bool:
-        converter = self._conv.get_converter(item.data.type, self.export)
+        converter = self._conv.get_converter(item.data.type)
         if converter is None:
             pmlib.log.error(
                 "Unable to convert folder {0:s} with type {1:s} to {2:s}".format(item.name, item.data.type.name,
-                                                                                 self.export.name))
+                                                                                 pmlib.config.target_type.name))
             return False
 
         check = converter.prepare(item)
@@ -113,8 +106,7 @@ class Mailbox(object):
 
         return True
 
-    def convert(self, export: Target) -> bool:
-        self.export = export
+    def convert(self) -> bool:
         check = self._create_folder(self.hierarchy.root)
         if check is False:
             return False

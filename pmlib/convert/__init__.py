@@ -17,6 +17,9 @@
 #
 
 import abc
+
+import pmlib
+
 from abc import ABCMeta
 
 from typing import Union, List
@@ -73,8 +76,8 @@ class Convert(object):
             self.modules.append(c)
         return
 
-    def get_converter(self, source: Source, target: Target) -> Union[None, Converter]:
+    def get_converter(self, source: Source) -> Union[None, Converter]:
         for _item in self.modules:
-            if (_item.source is source) and (_item.target is target):
+            if (_item.source is source) and (_item.target is pmlib.config.target_type):
                 return _item
         return None

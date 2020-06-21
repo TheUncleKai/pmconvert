@@ -18,6 +18,10 @@
 
 __all__ = [
     "convert",
+    "log",
+    "config",
+
+    "conf",
     "console",
     "hierachy",
     "item",
@@ -70,4 +74,7 @@ __version__ = "{0:d}.{1:d}.{2:d}.{3:d}".format(__milestone__, __major__, __minor
 __maintainer__ = __author__
 
 from bbutil.logging import Logging
+from pmlib.conf import Config
+
 log: Logging = Logging()
+config: Config = Config()

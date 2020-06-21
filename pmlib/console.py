@@ -16,26 +16,19 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
-import os
 from optparse import OptionParser
 from typing import Union
 
 import pmlib
+
+from pmlib import config
 from pmlib.mailbox import Mailbox
-from pmlib.types import Target
 from pmlib.utils import create_folder
 
 
 class Console(object):
 
     def __init__(self):
-
-        self.options = None
-        self.folder: str = ""
-        self.root: str = ""
-        self.hierachy_file: str = ""
-        self.target: str = ""
-        self.export: Target = Target.unknown
 
         self.mailbox: Union[Mailbox, None] = None
 
@@ -47,63 +40,39 @@ class Console(object):
                                default="")
         self.parser.add_option("-r", "--root", help="pegasus mail root mailbox", type="string", metavar="<MAILBOX>",
                                default="My mailbox")
-        self.parser.add_option("-a", "--hierachy", help="hierachy json file", type="string", metavar="<FILENAME>",
-                               default=None)
-        self.parser.add_option("-x", "--export", help="hierachy json file", type="string", metavar="mbox|maildir",
+        self.parser.add_option("-x", "--export", help="type for data export", type="string", metavar="mbox|maildir",
                                default="mbox")
-        self.parser.add_option("-t", "--target", help="export target path", type="string", metavar="<FOLDER>",
+        self.parser.add_option("-t", "--target", help="target path for export", type="string", metavar="<FOLDER>",
                                default="")
         return
 
     def prepare(self) -> bool:
         (options, args) = self.parser.parse_args()
-        self.options = options
 
-        if os.path.exists(options.folder) is False:
-            pmlib.log.error("Unable to find mail folder: {0:s}".format(options.folder))
+        check = config.parse(options)
+        if check is False:
             return False
 
-        if options.target == "":
-            pmlib.log.error("Need to give target path!")
-            return False
+        pmlib.log.setup(level=config.verbose)
 
-        if options.export == "mbox":
-            self.export = Target.mbox
+        pmlib.log.inform("Mail folder", "{0:s}".format(config.pegasus_path))
+        pmlib.log.inform("Root Mailbox", "{0:s}".format(config.pegasus_root))
+        pmlib.log.inform("Target folder", "{0:s}".format(config.target_path))
 
-        if options.export == "maildir":
-            self.export = Target.maildir
-
-        if self.export is Target.unknown:
-            pmlib.log.error("Invalid export format: {0:s}".format(options.export))
-            return False
-
-        pmlib.log.setup(level=options.verbose)
-
-        self.folder = options.folder
-        self.root = options.root
-        self.hierachy_file = options.hierachy
-        self.target = os.path.abspath(os.path.normpath(options.target))
-
-        pmlib.log.inform("Mail folder", "{0:s}".format(self.folder))
-        pmlib.log.inform("Root Mailbox", "{0:s}".format(self.root))
-        pmlib.log.inform("Target folder", "{0:s}".format(self.target))
-        if self.hierachy_file:
-            pmlib.log.inform("Hierachy file", "{0:s}".format(self.hierachy_file))
-
-        check = create_folder(self.target)
+        check = create_folder(config.target_path)
         if check is False:
             pmlib.log.error("Unable to create target folder!")
             return False
 
-        self.mailbox = Mailbox(self.root, self.target)
+        self.mailbox = Mailbox()
         return True
 
     def run(self) -> bool:
-        check = self.mailbox.init(self.folder)
+        check = self.mailbox.init()
         if check is False:
             return False
 
-        check = self.mailbox.convert(self.export)
+        check = self.mailbox.convert()
         if check is False:
             return False
 
