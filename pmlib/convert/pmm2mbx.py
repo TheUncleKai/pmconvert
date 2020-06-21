@@ -81,7 +81,7 @@ class ConvertPMM2MBox(Converter):
         count = "{0:d}".format(self.item.count).rjust(6, " ")
         size = convert_bytes(self.item.size)
 
-        pmlib.log.inform("FOLDER",
+        pmlib.log.inform(self.item.parent.name,
                          "{0:s} mails for {1:s} ({2:s})".format(count, self.item.name, size))
 
         progress = pmlib.log.progress(self.item.count)
