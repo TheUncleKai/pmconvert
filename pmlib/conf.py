@@ -20,7 +20,7 @@ import os
 
 import pmlib
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pmlib.types import Target
 
 
@@ -35,11 +35,16 @@ class Config(object):
 
     def parse(self, options) -> bool:
 
-        if os.path.exists(options.folder_list) is False:
+        if os.path.exists(options.folder) is False:
             pmlib.log.error("Unable to find Pegasus user folder: {0:s}".format(options.folder_list))
             return False
 
-        self.pegasus_path = options.folder_list
+        if options.root == "":
+            pmlib.log.error("Need to give a Pegasus Root Mailbox name!")
+            return False
+
+        self.pegasus_root = options.root
+        self.pegasus_path = options.folder
 
         if options.target == "":
             pmlib.log.error("Need to give target path!")
@@ -60,4 +65,3 @@ class Config(object):
         self.verbose = int(options.verbose)
 
         return True
-

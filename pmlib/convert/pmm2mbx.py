@@ -26,6 +26,7 @@ import pmlib
 from pmlib.convert import Converter
 from pmlib.item import Item
 from pmlib.types import Source, Target, Position
+from pmlib.utils import convert_bytes
 
 
 converter = "ConvertPMM2MBox"
@@ -77,8 +78,11 @@ class ConvertPMM2MBox(Converter):
 
         self.item.count = len(self.positions)
 
-        pmlib.log.inform("EXPORT",
-                         "Export {0:s} with {1:d} ({2:d})".format(self.item.name, self.item.count, self.item.size))
+        count = "{0:d}".format(self.item.count).rjust(6, " ")
+        size = convert_bytes(self.item.size)
+
+        pmlib.log.inform("FOLDER",
+                         "{0:s} mails for {1:s} ({2:s})".format(count, self.item.name, size))
 
         progress = pmlib.log.progress(self.item.count)
 

@@ -22,6 +22,13 @@ from typing import Union
 import pmlib
 from pmlib.types import Entry, State
 
+__all__ = [
+    "create_folder",
+    "convert_bytes",
+    "get_entry_type",
+    "get_entry_state"
+]
+
 
 def create_folder(folder: str) -> bool:
     if os.path.exists(folder) is False:
@@ -32,6 +39,15 @@ def create_folder(folder: str) -> bool:
             return False
 
     return True
+
+
+def convert_bytes(num: int) -> str:
+    step_unit = 1000.0  # 1024 bad the size
+
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+        if num < step_unit:
+            return "%3.1f %s" % (num, x)
+        num /= step_unit
 
 
 def get_entry_type(value: int) -> Union[Entry, None]:
