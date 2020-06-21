@@ -103,14 +103,6 @@ class ConvertPMM2MBox(Converter):
         for _pos in self.positions:
             value = stream[_pos.start:_pos.end]
 
-            # m = 0
-            # for i in range(len(value)):
-            #     _n = value[i:i+1]
-            #     _num = ord(_n)
-            #     if _num > 128:
-            #         pmlib.log.error("Stream out of range: {0:d}, pos {1:d}".format(_num, m))
-            #     m += 1
-
             msg = email.message_from_bytes(value)
             try:
                 self.mbox.add(msg)
