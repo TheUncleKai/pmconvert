@@ -31,6 +31,8 @@ from pmlib.utils import convert_bytes
 
 
 converter = "ConvertPMM2MBox"
+source = Source.pegasus
+target = Target.mbox
 
 
 class ConvertPMM2MBox(Converter):

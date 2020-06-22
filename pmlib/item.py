@@ -20,7 +20,7 @@ import re
 from typing import List
 
 import pmlib
-from pmlib.types import Source, Entry, Folder, Object, EntryData, ErrorReport
+from pmlib.types import Source, Entry, Folder, Object, EntryData, ErrorReport, EntryReport
 
 from pmlib.utils import get_entry_type, get_entry_state
 
@@ -88,6 +88,7 @@ class Item(EntryData):
         self.type = get_entry_type(int(m.group("Type")))
         self.state = get_entry_state(int(m.group("State")))
         self.name = str(m.group("Name"))
+        self.report = EntryReport()
 
         if parent_id.valid is True:
             self.parent_id = parent_id.id

@@ -27,6 +27,8 @@ __all__ = [
     "State",
     "Object",
     "Folder",
+    "EntryReport",
+    "ErrorReport",
     "EntryData",
     "Position"
 ]
@@ -107,6 +109,9 @@ class ErrorReport(object):
     text: str = ""
     exception: Exception = None
 
+    def __repr__(self):
+        return self.text
+
 
 @dataclass(init=False)
 class EntryReport(object):
@@ -117,6 +122,9 @@ class EntryReport(object):
     count: int = 0
     success: int = 0
     failure: int = 0
+
+    def __repr__(self):
+        return self.filename
 
 
 @dataclass(init=False)
