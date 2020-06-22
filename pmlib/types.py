@@ -101,6 +101,25 @@ class Folder(Object):
 
 
 @dataclass(init=False)
+class ErrorReport(object):
+
+    number: int = 0
+    text: str = ""
+    exception: Exception = None
+
+
+@dataclass(init=False)
+class EntryReport(object):
+
+    filename: str = ""
+    target_format: Target = Target.unknown
+    error: List[ErrorReport] = field(default_factory=list)
+    count: int = 0
+    success: int = 0
+    failure: int = 0
+
+
+@dataclass(init=False)
 class EntryData(object):
 
     type: Entry = Entry.unknown
@@ -118,6 +137,7 @@ class EntryData(object):
     valid: bool = False
     is_root: bool = False
     is_sorted: bool = False
+    report: EntryReport = field(default_factory=EntryReport)
 
     @property
     def id(self) -> str:

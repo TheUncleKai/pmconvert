@@ -20,7 +20,7 @@ import re
 from typing import List
 
 import pmlib
-from pmlib.types import Source, Entry, Folder, Object, EntryData
+from pmlib.types import Source, Entry, Folder, Object, EntryData, ErrorReport
 
 from pmlib.utils import get_entry_type, get_entry_state
 
@@ -161,6 +161,14 @@ class Item(EntryData):
             ret = "{0:s}\\{1:s}".format(_data, item.name)
 
         return ret
+
+    def add_error(self, number: int, text: str, exception: Exception):
+        error = ErrorReport()
+        error.number = number
+        error.exception = exception
+        error.text = text
+        self.report.error.append(error)
+        return
 
     def set_target(self):
         self.target = self._set_target(pmlib.config.target_path, "", self)

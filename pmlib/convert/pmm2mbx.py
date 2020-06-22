@@ -57,20 +57,22 @@ class ConvertPMM2MBox(Converter):
         self.f.seek(128)  # move to first mail
 
         path = "{0:s}.mbx".format(self.item.target)
+        self.item.report.filename = path
+        self.item.report.target_format = Target.mbox
         self.mbox = mailbox.mbox(path)
         self.mbox.lock()
         return True
 
-    def _store_fault(self, number: int, value: bytes):
+    def _store_fault(self, number: int, value: bytes) -> str:
         filename = "{0:s}_{1:d}.eml".format(self.item.target, number)
         filename = os.path.abspath(os.path.normpath(filename))
 
-        self.errors.append("Unable to decode mail {0:d} in {1:s}".format(number, self.item.name))
+        error_text = "Unable to decode mail {0:d} in {1:s}".format(number, self.item.name)
 
         f = open(filename, mode="wb")
         f.write(value)
         f.close()
-        return
+        return error_text
 
     def run(self) -> bool:
         n = 0
@@ -106,12 +108,17 @@ class ConvertPMM2MBox(Converter):
             msg = email.message_from_bytes(value)
             try:
                 self.mbox.add(msg)
-            except UnicodeEncodeError:
-                self._store_fault(n, value)
+            except UnicodeEncodeError as e:
+                text = self._store_fault(n, value)
+                self.item.add_error(n, text, e)
+                self.item.report.failure += 1
+            else:
+                self.item.report.success += 1
 
             self.mbox.flush()
             progress.inc()
             n += 1
+            self.item.report.count = n
 
         pmlib.log.clear()
 
