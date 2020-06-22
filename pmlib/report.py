@@ -68,6 +68,18 @@ ul, #myUL {
 }
 """
 
+__script__ = """
+var toggler = document.getElementsByClassName("caret");
+var i;
+
+for (i = 0; i < toggler.length; i++) {
+  toggler[i].addEventListener("click", function() {
+    this.parentElement.querySelector(".nested").classList.toggle("active");
+    this.classList.toggle("caret-down");
+  });
+}
+"""
+
 
 # noinspection PyTypeChecker
 class Report(object):
@@ -77,19 +89,29 @@ class Report(object):
         self.tuple: tuple = Doc().ttl()
         return
 
-    def _create_head(self, html):
+    def _create_head(self, head):
         doc, tag, text, line = self.tuple
 
-        with html:
-            with tag("head"):
-                with tag("title"):
-                    text("pmconvert: Pegasus Mail Converter: {0:s}".format(self.root.name))
+        with head:
+            with tag("title"):
+                text("pmconvert: Pegasus Mail Converter: {0:s}".format(self.root.name))
 
-                # doc.stag('meta', ('http-equiv', 'Content-Type'), ('content', 'text/html; charset=utf-8'))
-                # doc.stag('meta', ('http-equiv', 'Content-Style-Type'), ('content', 'text/css'))
-                doc.stag('meta', name='viewport', content='width=device-width, initial-scale=1')
-                with tag("style"):
-                    text(__css__)
+            # doc.stag('meta', ('http-equiv', 'Content-Type'), ('content', 'text/html; charset=utf-8'))
+            # doc.stag('meta', ('http-equiv', 'Content-Style-Type'), ('content', 'text/css'))
+            doc.stag('meta', name='viewport', content='width=device-width, initial-scale=1')
+            with tag("style"):
+                text(__css__)
+
+        return
+
+    def _create_body(self, body):
+        doc, tag, text, line = self.tuple
+
+        with body:
+            with tag("h2"):
+                text(self.root.name)
+            with tag("script"):
+                text(__script__)
 
         return
 
@@ -101,7 +123,12 @@ class Report(object):
         doc.asis('<!DOCTYPE html>')
         html = tag("html")
 
-        self._create_head(html)
+        with html:
+            head = tag("head")
+            self._create_head(head)
+
+            body = tag("body")
+            self._create_body(body)
 
         result = indent(
             doc.getvalue(),
