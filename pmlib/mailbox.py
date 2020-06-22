@@ -100,10 +100,19 @@ class Mailbox(object):
         else:
             pmlib.log.inform("TRAY", item.full_name)
 
+            # first convert folder
             for _item in sorted(item.children, key=_sort_name):
-                check = self._export(_item)
-                if check is False:
-                    return False
+                if _item.type is Entry.folder:
+                    check = self._export(_item)
+                    if check is False:
+                        return False
+
+            # then trays
+            for _item in sorted(item.children, key=_sort_name):
+                if _item.type is not Entry.folder:
+                    check = self._export(_item)
+                    if check is False:
+                        return False
 
         return True
 
