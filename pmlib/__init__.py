@@ -26,6 +26,7 @@ __all__ = [
     "hierachy",
     "item",
     "mailbox",
+    "report",
     "types",
     "utils"
 ]

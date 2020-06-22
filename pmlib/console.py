@@ -79,4 +79,6 @@ class Console(object):
         return True
 
     def close(self) -> bool:
-        return True
+
+        check = self.mailbox.report()
+        return check

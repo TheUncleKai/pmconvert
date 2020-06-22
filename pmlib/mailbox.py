@@ -25,6 +25,7 @@ from pmlib.hierachy import Hierarchy
 from pmlib.types import Entry
 from pmlib.item import Item
 from pmlib.utils import create_folder
+from pmlib.report import Report
 
 
 def _sort_name(item: Item):
@@ -129,4 +130,8 @@ class Mailbox(object):
         return True
 
     def report(self) -> bool:
-        return True
+
+        report = Report(self.hierarchy.root)
+
+        check = report.create()
+        return check
