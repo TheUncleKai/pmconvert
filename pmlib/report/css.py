@@ -31,6 +31,8 @@ body {
 
 button {
     background-color: #FFFFFF;
+    font-weight: bold;
+
 }
 
 table {
@@ -133,7 +135,7 @@ ul, #myUL {
     overflow: hidden;
     width: 100%;
     background-color: #F0FFFF;
-    margin-bottom: 30px;
+    margin-bottom: 6px;
 }
 
 .firstcolumn {
