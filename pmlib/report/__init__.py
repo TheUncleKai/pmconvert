@@ -91,7 +91,8 @@ class Report(object):
                     if _item.type is Entry.folder:
                         with tag("li"):
                             with tag("button", type="button", klass="folder"):
-                                doc.asis("&#9670; {0:s}".format(_item.name))
+                                # &#9670;
+                                text(_item.name)
                             div = tag("div", klass="content")
                             self._create_report(div, _item)
 

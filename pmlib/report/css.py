@@ -91,11 +91,19 @@ ul, #myUL {
     text-align: left;
     outline: none;
     font-size: 14px;
+    background-color: #F0FFFF
 }
 
 .folder:hover {
     background-color: #F0F8FF;
     font-weight: bold;
+}
+
+.active::before {
+    content: '\\25C6';
+    color: black;
+    display: inline-block;
+    margin-right: 6px;
 }
 
 .active {
