@@ -91,8 +91,7 @@ class Report(object):
                     if _item.type is Entry.folder:
                         with tag("li"):
                             with tag("button", type="button", klass="folder"):
-                                # &#9670;
-                                text(_item.name)
+                                text("{0:s} ({1:d})".format(_item.name, _item.report.count))
                             div = tag("div", klass="content")
                             self._create_report(div, _item)
 
