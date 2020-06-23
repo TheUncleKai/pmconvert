@@ -22,6 +22,7 @@ import pmlib
 
 from yattag import Doc, indent
 from pmlib.item import Item
+from pmlib.types import Entry
 
 
 __all__ = [
@@ -81,6 +82,10 @@ for (i = 0; i < toggler.length; i++) {
 """
 
 
+def _sort_name(item: Item):
+    return item.name
+
+
 # noinspection PyTypeChecker
 class Report(object):
 
@@ -104,14 +109,37 @@ class Report(object):
 
         return
 
+    def _create_item(self, li, item: Item):
+        doc, tag, text, line = self.tuple
+        with li:
+            with tag("span", klass="caret"):
+                text(item.name)
+
+            ul = tag("ul", klass="nested")
+            with ul:
+                for _item in sorted(item.children, key=_sort_name):
+                    if _item.type is Entry.folder:
+                        line("li", _item.name)
+
+                for _item in sorted(item.children, key=_sort_name):
+                    if _item.type is Entry.tray:
+                        _li = tag("li")
+                        self._create_item(_li, _item)
+        return
+
     def _create_body(self, body):
         doc, tag, text, line = self.tuple
 
         with body:
             with tag("h2"):
-                text(self.root.name)
+                text("Mailbox Folder Report")
+
+            with tag("ul", id="myUL"):
+                root = tag("li")
+                self._create_item(root, self.root)
+
             with tag("script"):
-                text(__script__)
+                doc.asis(__script__)
 
         return
 
@@ -132,9 +160,9 @@ class Report(object):
 
         result = indent(
             doc.getvalue(),
-            indentation='    ',
+            indentation='  ',
             newline='\n',
-            indent_text=True
+            indent_text=False
         )
 
         try:
