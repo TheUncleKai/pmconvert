@@ -30,53 +30,122 @@ __all__ = [
 ]
 
 __css__ = """
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+}
+
+table {
+    border-spacing: 5px;
+}
+
 ul, #myUL {
-  list-style-type: none;
+    list-style-type: none;
 }
 
 #myUL {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .caret {
-  cursor: pointer;
-  -webkit-user-select: none; /* Safari 3.1+ */
-  -moz-user-select: none; /* Firefox 2+ */
-  -ms-user-select: none; /* IE 10+ */
-  user-select: none;
+    cursor: pointer;
+    -webkit-user-select: none; /* Safari 3.1+ */
+    -moz-user-select: none; /* Firefox 2+ */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none;
 }
 
 .caret::before {
-  content: '\\25B6';
-  color: black;
-  display: inline-block;
-  margin-right: 6px;
+    content: '\25B6';
+    color: black;
+    display: inline-block;
+    margin-right: 6px;
 }
 
 .caret-down::before {
-  -ms-transform: rotate(90deg); /* IE 9 */
-  -webkit-transform: rotate(90deg); /* Safari */'
-  transform: rotate(90deg);  
+    -ms-transform: rotate(90deg); /* IE 9 */
+    -webkit-transform: rotate(90deg); /* Safari */'
+    transform: rotate(90deg);  
 }
 
 .nested {
-  display: none;
+    display: none;
 }
 
-.active {
-  display: block;
+.activetray {
+    display: block;
+}
+
+.folder {
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 6px;
+    color: blue;
+    cursor: pointer;
+    width: 20%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 14px;
+}
+
+.tray {
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 6px;
+    cursor: pointer;
+    width: 20%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 14px;
+}
+
+.active, .folder:hover {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #00FFFF;
+    padding: 12px;
+    font-weight: bold;
+}
+
+.content {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    padding-top: 20px; 
+    padding-left: 20px; 
+    padding-bottom: 20px; 
+    display: none;
+    overflow: hidden;
+    width: 80%;
+    background-color: #F0FFFF;
+    margin-bottom: 30px;
+}
+
+.firstcolumn {
+    width: 30%;
+    font-weight: bold;
 }
 """
 
 __script__ = """
 var toggler = document.getElementsByClassName("caret");
+var coll = document.getElementsByClassName("collapsible");
 var i;
 
 for (i = 0; i < toggler.length; i++) {
   toggler[i].addEventListener("click", function() {
-    this.parentElement.querySelector(".nested").classList.toggle("active");
+    this.parentElement.querySelector(".nested").classList.toggle("activetray");
     this.classList.toggle("caret-down");
+  });
+}
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
   });
 }
 """
@@ -101,12 +170,28 @@ class Report(object):
             with tag("title"):
                 text("pmconvert: Pegasus Mail Converter: {0:s}".format(self.root.name))
 
-            # doc.stag('meta', ('http-equiv', 'Content-Type'), ('content', 'text/html; charset=utf-8'))
-            # doc.stag('meta', ('http-equiv', 'Content-Style-Type'), ('content', 'text/css'))
             doc.stag('meta', name='viewport', content='width=device-width, initial-scale=1')
             with tag("style"):
                 text(__css__)
 
+        return
+
+    def _create_report(self, div, item: Item):
+        doc, tag, text, line = self.tuple
+        with div:
+            with tag("table"):
+                with tag("tr"):
+                    line("td", "Folder", klass="firstcolumn")
+                    line("td", "{0:s}".format(item.report.filename))
+                with tag("tr"):
+                    line("td", "Mails", klass="firstcolumn")
+                    line("td", "{0:d}".format(item.report.count))
+                with tag("tr"):
+                    line("td", "Success", klass="firstcolumn")
+                    line("td", "{0:d}".format(item.report.success))
+                with tag("tr"):
+                    line("td", "failure", klass="firstcolumn")
+                    line("td", "{0:d}".format(item.report.failure))
         return
 
     def _create_item(self, li, item: Item):
@@ -119,7 +204,11 @@ class Report(object):
             with ul:
                 for _item in sorted(item.children, key=_sort_name):
                     if _item.type is Entry.folder:
-                        line("li", _item.name)
+                        with tag("li"):
+                            with tag("button", type="button", klass="collapsible"):
+                                text(_item.name)
+                            div = tag("div", klass="content")
+                            self._create_report(div, _item)
 
                 for _item in sorted(item.children, key=_sort_name):
                     if _item.type is Entry.tray:
