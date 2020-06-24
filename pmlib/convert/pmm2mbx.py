@@ -93,15 +93,15 @@ class ConvertPMM2MBox(Converter):
                 start = n + 1
             n += 1
 
-        self.item.count = len(self.positions)
+        self.item.mail_count = len(self.positions)
 
-        count = "{0:d}".format(self.item.count).rjust(6, " ")
+        count = "{0:d}".format(self.item.mail_count).rjust(6, " ")
         size = convert_bytes(self.item.size)
 
         pmlib.log.inform(self.item.parent.name,
                          "{0:s} mails for {1:s} ({2:s})".format(count, self.item.name, size))
 
-        progress = pmlib.log.progress(self.item.count)
+        progress = pmlib.log.progress(self.item.mail_count)
 
         n = 0
         for _pos in self.positions:
@@ -120,7 +120,7 @@ class ConvertPMM2MBox(Converter):
             self.mbox.flush()
             progress.inc()
             n += 1
-            self.item.report.count = n
+            self.item.report.mail_count = n
 
         pmlib.log.clear()
 

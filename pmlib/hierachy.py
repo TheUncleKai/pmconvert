@@ -17,12 +17,12 @@
 #
 
 import os
-from typing import Union, List
+from typing import Union, List, Dict
 
 import pmlib
 
 from pmlib.item import Item
-from pmlib.types import Entry
+from pmlib.types import Entry, Counter
 
 __all__ = [
     "Hierarchy"
@@ -38,9 +38,13 @@ class Hierarchy(object):
     def __init__(self):
 
         self.root: Union[Item, None] = None
-        self.count: int = 0
+        self.counter = Counter()
         self.entries: List[Item] = []
+
+        self.index: Dict[int, Item] = {}
+        self.tray: Dict[int, Item] = {}
         self.root: Union[Item, None] = None
+        self.level: int = 0
         return
 
     def parse(self) -> bool:
@@ -60,18 +64,19 @@ class Hierarchy(object):
                 data.is_root = True
                 self.root = data
             self.entries.append(data)
-            self.count += 1
         f.close()
+
+        count = len(self.entries)
 
         if self.root is None:
             pmlib.log.warn("Hierarchy", "No root found!")
             return False
 
-        if self.count == 0:
+        if count == 0:
             pmlib.log.warn("Hierarchy", "No entries found!")
             return False
 
-        pmlib.log.inform("Hierarchy", "{0:d} entries found!".format(self.count))
+        pmlib.log.inform("Hierarchy", "{0:d} entries found!".format(count))
         return True
 
     def _write_entry(self, root: list, item: Item):
@@ -83,7 +88,6 @@ class Hierarchy(object):
             for _item in sorted(item.children, key=_sort_name):
                 self._write_entry(content, _item)
             root.append({item.name: content})
-
         return
 
     def _add_folder(self, folder: List[Item], item: Item):
@@ -96,11 +100,68 @@ class Hierarchy(object):
                 self._add_folder(folder, _item)
         return
 
+    @staticmethod
+    def _count(item: Item) -> Counter:
+        counter = Counter()
+
+        if item.type is Entry.folder:
+            return counter
+
+        for _item in sorted(item.children, key=_sort_name):
+            if _item.type is Entry.folder:
+                counter.inc_folder()
+
+        for _item in sorted(item.children, key=_sort_name):
+            if _item.type is Entry.tray:
+                counter.inc_tray()
+
+        return counter
+
+    def _index(self, item: Item):
+
+        item.navigation.index = self.counter.index
+        self.counter.inc_index()
+
+        item.navigation.children = len(item.children)
+
+        max_counter = self._count(item)
+        counter = Counter()
+
+        if item.type is not Entry.folder:
+            item.navigation.tray = self.counter.tray
+            self.counter.inc_tray()
+            self.tray[item.navigation.tray] = item
+
+        for _item in sorted(item.children, key=_sort_name):
+            if _item.type is Entry.folder:
+                counter.inc_folder()
+                _item.navigation.level = item.navigation.level
+                _item.navigation.count = max_counter.folder
+                _item.navigation.number = counter.folder
+                self._index(_item)
+
+        for _item in sorted(item.children, key=_sort_name):
+            if _item.type is Entry.tray:
+                counter.inc_tray()
+                _item.navigation.level = item.navigation.level + 1
+                _item.navigation.count = max_counter.tray
+                _item.navigation.number = counter.tray
+                self._index(_item)
+        return
+
     def sort(self, folder_list: List[Item]):
+        self.root.navigation.level = 1
         self.root.populate(self.entries)
 
         for _item in self.entries:
             _item.populate(self.entries)
 
         self._add_folder(folder_list, self.root)
+
+        self._index(self.root)
+
+        for _item in self.entries:
+            self.index[_item.navigation.index] = _item
+            if _item.navigation.level > self.level:
+                self.level = _item.navigation.level
         return

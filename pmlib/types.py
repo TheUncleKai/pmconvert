@@ -29,6 +29,8 @@ __all__ = [
     "Folder",
     "EntryReport",
     "ErrorReport",
+    "Navigation",
+    "Counter",
     "EntryData",
     "Position"
 ]
@@ -128,6 +130,37 @@ class EntryReport(object):
 
 
 @dataclass(init=False)
+class Navigation(object):
+
+    tray: int = 0
+    index: int = 0
+    number: int = 0
+    count: int = 0
+    children: int = 0
+    level: int = 0
+
+
+@dataclass(init=False)
+class Counter(object):
+
+    index: int = 0
+    tray: int = 0
+    folder: int = 0
+
+    def inc_index(self):
+        self.index += 1
+        return
+
+    def inc_tray(self):
+        self.tray += 1
+        return
+
+    def inc_folder(self):
+        self.folder += 1
+        return
+
+
+@dataclass(init=False)
 class EntryData(object):
 
     type: Entry = Entry.unknown
@@ -135,7 +168,7 @@ class EntryData(object):
 
     data: Union[Object, Folder] = None
     size: int = 0
-    count: int = 0
+    mail_count: int = 0
     children: List[Any] = field(default_factory=list)
     target: str = ""
     full_name: str = ""
@@ -145,6 +178,7 @@ class EntryData(object):
     valid: bool = False
     is_root: bool = False
     is_sorted: bool = False
+    navigation: Navigation = field(default_factory=Navigation)
     report: EntryReport = field(default_factory=EntryReport)
 
     @property

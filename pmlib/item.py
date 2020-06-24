@@ -20,7 +20,7 @@ import re
 from typing import List
 
 import pmlib
-from pmlib.types import Source, Entry, Folder, Object, EntryData, ErrorReport, EntryReport
+from pmlib.types import Source, Entry, Folder, Object, EntryData, ErrorReport, EntryReport, Navigation
 
 from pmlib.utils import get_entry_type, get_entry_state
 
@@ -85,6 +85,7 @@ class Item(EntryData):
 
         self.children = []
         self.mails = []
+        self.navigation = Navigation()
         self.type = get_entry_type(int(m.group("Type")))
         self.state = get_entry_state(int(m.group("State")))
         self.name = str(m.group("Name"))
@@ -126,7 +127,11 @@ class Item(EntryData):
                 self.children.append(_item)
                 _item.parent = self
 
+                if _item.type is Entry.tray:
+                    _item.level = self.navigation.level + 1
+
                 if _item.type is Entry.folder:
+                    _item.level = self.navigation.level
                     _item.is_sorted = True
 
         self.is_sorted = True
