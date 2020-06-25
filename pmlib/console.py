@@ -16,6 +16,7 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+import os
 from optparse import OptionParser
 
 import pmlib
@@ -28,7 +29,7 @@ from pmlib.hierachy import Hierarchy
 from pmlib.item import Item, sort_items
 from pmlib.types import Entry
 
-from pmlib.utils import create_folder
+from pmlib.utils import create_folder, clean_folder
 
 
 class Console(object):
@@ -55,6 +56,12 @@ class Console(object):
 
         if item.type is Entry.folder:
             return True
+
+        if os.path.exists(item.target):
+            pmlib.log.inform("Mailbox", "Remove folder {0:s}".format(item.target))
+            check = clean_folder(item.target)
+            if check is False:
+                return False
 
         check = create_folder(item.target)
         if check is False:

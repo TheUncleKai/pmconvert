@@ -16,7 +16,7 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
-import os
+import os, shutil
 from typing import Union
 
 import pmlib.log
@@ -25,6 +25,7 @@ from pmlib.types import Entry, State
 
 __all__ = [
     "create_folder",
+    "clean_folder",
     "convert_bytes",
     "get_entry_type",
     "get_entry_state"
@@ -39,6 +40,20 @@ def create_folder(folder: str) -> bool:
             pmlib.log.exception(e)
             return False
 
+    return True
+
+
+def clean_folder(folder: str) -> bool:
+    for filename in os.listdir(folder):
+        file_path = os.path.normpath(os.path.join(folder, filename))
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            pmlib.log.exception(e)
+            return False
     return True
 
 
