@@ -95,6 +95,7 @@ class Item(EntryData):
 
         self.children = []
         self.mails = []
+        self.symbols = []
         self.navigation = Navigation()
         self.type = get_entry_type(int(m.group("Type")))
         self.state = get_entry_state(int(m.group("State")))
@@ -132,17 +133,23 @@ class Item(EntryData):
         if self.is_sorted is True:
             return
 
+        children = []
+
         for _item in datalist:
             if _item.parent_id == self.id:
-                self.children.append(_item)
+                children.append(_item)
                 _item.parent = self
 
-                if _item.type is Entry.tray:
-                    _item.level = self.navigation.level + 1
-
                 if _item.type is Entry.folder:
-                    _item.level = self.navigation.level
                     _item.is_sorted = True
+
+        for _item in sorted(children, key=sort_items):
+            if _item.type is Entry.folder:
+                self.children.append(_item)
+
+        for _item in sorted(children, key=sort_items):
+            if _item.type is Entry.tray:
+                self.children.append(_item)
 
         self.is_sorted = True
         return

@@ -28,8 +28,8 @@ from pmlib.convert import Convert
 from pmlib.hierachy import Hierarchy
 from pmlib.item import Item, sort_items
 from pmlib.types import Entry
-
 from pmlib.utils import create_folder, clean_folder
+from pmlib.report.html import ReportHTML
 
 
 class Console(object):
@@ -160,18 +160,19 @@ class Console(object):
 
         root = pmlib.data.root
 
-        check = self._create_folder(pmlib.data.root)
-        if check is False:
-            return False
-
-        check = self._export_item(pmlib.data.root)
-        if check is False:
-            return False
+        # check = self._create_folder(pmlib.data.root)
+        # if check is False:
+        #     return False
+        #
+        # check = self._export_item(pmlib.data.root)
+        # if check is False:
+        #     return False
 
         return True
 
     @staticmethod
     def close() -> bool:
 
-        check = True
+        html = ReportHTML()
+        check = html.create()
         return check

@@ -138,6 +138,7 @@ class Navigation(object):
     count: int = 0
     children: int = 0
     level: int = 0
+    is_last: bool = False
 
 
 @dataclass(init=False)
@@ -146,6 +147,7 @@ class Counter(object):
     index: int = 0
     tray: int = 0
     folder: int = 0
+    item: int = 0
 
     def inc_index(self):
         self.index += 1
@@ -159,8 +161,12 @@ class Counter(object):
         self.folder += 1
         return
 
+    def inc_item(self):
+        self.item += 1
+        return
 
-@dataclass(init=False)
+
+@dataclass(init=True)
 class EntryData(object):
 
     type: Entry = Entry.unknown
@@ -178,6 +184,7 @@ class EntryData(object):
     valid: bool = False
     is_root: bool = False
     is_sorted: bool = False
+    symbols: List[str] = field(default_factory=list)
     navigation: Navigation = field(default_factory=Navigation)
     report: EntryReport = field(default_factory=EntryReport)
 

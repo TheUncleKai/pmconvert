@@ -91,21 +91,14 @@ class Hierarchy(object):
         return
 
     @staticmethod
-    def _count(item: Item) -> Counter:
-        counter = Counter()
-
-        if item.type is Entry.folder:
-            return counter
-
-        for _item in sorted(item.children, key=sort_items):
-            if _item.type is Entry.folder:
-                counter.inc_folder()
-
-        for _item in sorted(item.children, key=sort_items):
-            if _item.type is Entry.tray:
-                counter.inc_tray()
-
-        return counter
+    def _count_item(level: int, counter: Counter, item: Item, max_count: int):
+        item.navigation.level = level + 1
+        item.navigation.count = max_count
+        item.navigation.number = counter.item
+        if item.navigation.number == (max_count - 1):
+            item.navigation.is_last = True
+        counter.inc_item()
+        return
 
     def _index(self, item: Item):
 
@@ -114,7 +107,7 @@ class Hierarchy(object):
 
         item.navigation.children = len(item.children)
 
-        max_counter = self._count(item)
+        max_count = len(item.children)
         counter = Counter()
 
         if item.type is not Entry.folder:
@@ -124,25 +117,20 @@ class Hierarchy(object):
 
         for _item in sorted(item.children, key=sort_items):
             if _item.type is Entry.folder:
-                counter.inc_folder()
-                _item.navigation.level = item.navigation.level
-                _item.navigation.count = max_counter.folder
-                _item.navigation.number = counter.folder
+                self._count_item(item.navigation.level, counter, _item, max_count)
                 self._index(_item)
 
         for _item in sorted(item.children, key=sort_items):
             if _item.type is Entry.tray:
-                counter.inc_tray()
-                _item.navigation.level = item.navigation.level + 1
-                _item.navigation.count = max_counter.tray
-                _item.navigation.number = counter.tray
+                self._count_item(item.navigation.level, counter, _item, max_count)
                 self._index(_item)
         return
 
     def sort(self):
         root: Item = pmlib.data.root
 
-        root.navigation.level = 1
+        root.navigation.level = 0
+        root.navigation.is_last = True
         root.populate(pmlib.data.entries)
 
         for _item in pmlib.data.entries:
