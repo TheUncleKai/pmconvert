@@ -23,13 +23,9 @@ import pmlib
 from pmlib.convert import Convert
 from pmlib.hierachy import Hierarchy
 from pmlib.types import Entry
-from pmlib.item import Item
+from pmlib.item import Item, sort_items
 from pmlib.utils import create_folder
 from pmlib.report import Report
-
-
-def _sort_name(item: Item):
-    return item.name
 
 
 class Mailbox(object):
@@ -103,14 +99,14 @@ class Mailbox(object):
             pmlib.log.inform("TRAY", item.full_name)
 
             # first convert folder
-            for _item in sorted(item.children, key=_sort_name):
+            for _item in sorted(item.children, key=sort_items):
                 if _item.type is Entry.folder:
                     check = self._export(_item)
                     if check is False:
                         return False
 
             # then trays
-            for _item in sorted(item.children, key=_sort_name):
+            for _item in sorted(item.children, key=sort_items):
                 if _item.type is not Entry.folder:
                     check = self._export(_item)
                     if check is False:
@@ -119,11 +115,11 @@ class Mailbox(object):
         return True
 
     def convert(self) -> bool:
-        check = self._create_folder(self.hierarchy.root)
+        check = self._create_folder(pmlib.data.root)
         if check is False:
             return False
 
-        check = self._export(self.hierarchy.root)
+        check = self._export(pmlib.data.root)
         if check is False:
             return False
 

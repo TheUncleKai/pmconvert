@@ -16,19 +16,30 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
-import abc
-from abc import ABCMeta
+from bbutil.logging import Logging
 
-import pmlib
-from pmlib.item import Item
+_log: Logging = Logging()
 
+__all__ = [
+    "setup",
+    "register",
+    "get_writer",
 
-class Report(metaclass=ABCMeta):
+    "inform",
+    "warn",
+    "error",
+    "exception",
+    "open",
+    "close"
+]
 
-    def __init__(self):
-        self.root: Item = pmlib.data.root
-        return
+setup = _log.setup
+register = _log.register
+get_writer = _log.get_writer
 
-    @abc.abstractmethod
-    def create(self) -> bool:
-        pass
+inform = _log.inform
+warn = _log.warn
+error = _log.error
+exception = _log.exception
+open = _log.open
+close = _log.close

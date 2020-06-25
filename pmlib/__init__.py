@@ -74,8 +74,8 @@ __version__ = "{0:d}.{1:d}.{2:d}.{3:d}".format(__milestone__, __major__, __minor
 #: package maintainer
 __maintainer__ = __author__
 
-from bbutil.logging import Logging
 from pmlib.conf import Config
+from pmlib.item import Data
 
-log: Logging = Logging()
 config: Config = Config()
+data: Data = Data()

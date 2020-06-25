@@ -15,9 +15,11 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
+
 import os
 import re
-from typing import List
+from typing import List, Dict
+from dataclasses import dataclass, field
 
 import pmlib
 from pmlib.types import Source, Entry, Folder, Object, EntryData, ErrorReport, EntryReport, Navigation
@@ -28,6 +30,12 @@ from pmlib.utils import get_entry_type, get_entry_state
 _entry = re.compile("(?P<Type>[0-9]+),(?P<State>[0-9]+),\"(?P<Data>.+)\",\"(?P<Parent>.*)\",\"(?P<Name>.*)\"")
 _object = re.compile("(?P<ID>.+):(?P<Name>.+)")
 _folder = re.compile("(?P<ID>.+):(?P<Folder>.+):(?P<Name>.+)")
+
+__all__ = [
+    "Item",
+    "sort_items",
+    "Data"
+]
 
 
 class Item(EntryData):
@@ -180,3 +188,17 @@ class Item(EntryData):
         self.target = self._set_target(pmlib.config.target_path, "", self)
         self.full_name = self._set_full_name("", self)
         return
+
+
+def sort_items(item: Item):
+    return item.name
+
+
+@dataclass()
+class Data(object):
+
+    level: int = 0
+    entries: List[Item] = field(default_factory=list)
+    index: Dict[int, Item] = field(default_factory=dict)
+    tray: Dict[int, Item] = field(default_factory=dict)
+    root: Item = field(default=None)

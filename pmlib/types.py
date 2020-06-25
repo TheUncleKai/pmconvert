@@ -18,7 +18,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Match, Union, List, Any
+from typing import Match, Union, List, Dict, Any
 
 __all__ = [
     "Entry",
