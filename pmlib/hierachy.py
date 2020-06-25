@@ -139,7 +139,7 @@ class Hierarchy(object):
                 self._index(_item)
         return
 
-    def sort(self, folder_list: List[Item]):
+    def sort(self):
         root: Item = pmlib.data.root
 
         root.navigation.level = 1
@@ -147,8 +147,6 @@ class Hierarchy(object):
 
         for _item in pmlib.data.entries:
             _item.populate(pmlib.data.entries)
-
-        self._add_folder(folder_list, root)
 
         self._index(root)
 
