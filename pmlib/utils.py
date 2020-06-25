@@ -19,7 +19,8 @@
 import os
 from typing import Union
 
-import pmlib
+import pmlib.log
+
 from pmlib.types import Entry, State
 
 __all__ = [

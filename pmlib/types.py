@@ -18,7 +18,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Match, Union, List, Dict, Any
+from typing import Match, Union, List, Any
 
 __all__ = [
     "Entry",
@@ -115,7 +115,7 @@ class ErrorReport(object):
         return self.text
 
 
-@dataclass(init=False)
+@dataclass(init=True)
 class EntryReport(object):
 
     filename: str = ""

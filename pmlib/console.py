@@ -20,6 +20,7 @@ from optparse import OptionParser
 from typing import Union
 
 import pmlib
+import pmlib.log
 
 from pmlib import config
 from pmlib.mailbox import Mailbox
@@ -80,5 +81,6 @@ class Console(object):
 
     def close(self) -> bool:
 
-        check = self.mailbox.report()
+        check = True
+        # check = self.mailbox.report()
         return check

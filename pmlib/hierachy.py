@@ -20,6 +20,8 @@ import os
 from typing import List
 
 import pmlib
+import pmlib.log
+
 from pmlib.item import Item, sort_items
 from pmlib.types import Entry, Counter
 

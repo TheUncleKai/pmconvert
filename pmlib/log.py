@@ -30,12 +30,14 @@ __all__ = [
     "error",
     "exception",
     "open",
-    "close"
+    "close",
+    "clear"
 ]
 
 setup = _log.setup
 register = _log.register
 get_writer = _log.get_writer
+progress = _log.progress
 
 inform = _log.inform
 warn = _log.warn
@@ -43,3 +45,4 @@ error = _log.error
 exception = _log.exception
 open = _log.open
 close = _log.close
+clear = _log.clear

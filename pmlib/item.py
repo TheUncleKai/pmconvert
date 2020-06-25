@@ -22,6 +22,8 @@ from typing import List, Dict
 from dataclasses import dataclass, field
 
 import pmlib
+import pmlib.log
+
 from pmlib.types import Source, Entry, Folder, Object, EntryData, ErrorReport, EntryReport, Navigation
 
 from pmlib.utils import get_entry_type, get_entry_state

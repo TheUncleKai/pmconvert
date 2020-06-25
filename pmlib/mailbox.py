@@ -19,6 +19,7 @@
 from typing import List
 
 import pmlib
+import pmlib.log
 
 from pmlib.convert import Convert
 from pmlib.hierachy import Hierarchy
@@ -126,8 +127,7 @@ class Mailbox(object):
         return True
 
     def report(self) -> bool:
-
-        report = Report(self.hierarchy.root)
+        report = Report()
 
         check = report.create()
         return check

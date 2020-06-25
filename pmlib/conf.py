@@ -18,7 +18,7 @@
 
 import os
 
-import pmlib
+import pmlib.log
 
 from dataclasses import dataclass
 from pmlib.types import Target
