@@ -52,6 +52,15 @@ table {
     border-spacing: 5px;
 }
 
+.heading {
+    font-family: "Arial, Helvetica, sans-serif;
+    color: blue;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 14px;
+}
+
 .tree {
     font-family: "Lucida Console", Courier, monospace;
     color: blue;
@@ -59,24 +68,6 @@ table {
     text-align: left;
     outline: none;
     font-size: 18px;
-}
-
-.folder:hover {
-    background-color: #F0F8FF;
-    font-weight: bold;
-}
-
-.tray {
-    font-family: Arial, Helvetica, sans-serif;
-    cursor: pointer;
-    width: 100%;
-    border: none;
-    text-align: left;
-    outline: none;
-    font-size: 14px;
-    padding-top: 12px;
-    margin-top: 2px;
-    margin-bottom: 2px;
 }
 
 """
@@ -92,12 +83,15 @@ table {
 
 class Symbol(Enum):
 
-    root = "┓"
-    tray = "┳"
-    horizontal = "━"
-    vertical = "┃"
-    last = "┗"
-    child = "┣"
+    root = "&#9491;"
+    tray = "&#9523;"
+    horizontal = "&#9473;"
+    vertical = "&#9475;"
+    last = "&#9495;"
+    child = "&#9507;"
+    envelope = "&#9993;"
+    folder = "&#128193;"
+    space = "&#8200;"
 
 
 # noinspection PyTypeChecker
@@ -117,9 +111,11 @@ class ReportHTML(Report):
             return
 
         if item.type is Entry.tray:
+            item.symbols[level + 1] = "{0:s}{1:s}{2:s}".format(Symbol.folder.value, Symbol.space.value, item.name)
             item.symbols[level] = Symbol.tray.value
 
         if item.type is Entry.folder:
+            item.symbols[level + 1] = "{0:s}{1:s}{2:s}".format(Symbol.envelope.value, Symbol.space.value, item.name)
             item.symbols[level] = Symbol.horizontal.value
 
         self._set_parent_symbols(item, item.parent, item)
@@ -143,7 +139,8 @@ class ReportHTML(Report):
                 if child.navigation.is_last is False:
                     work_item.symbols[level] = Symbol.vertical.value
             else:
-                work_item.symbols[level] = Symbol.vertical.value
+                if child.navigation.is_last is False:
+                    work_item.symbols[level] = Symbol.vertical.value
 
         self._set_parent_symbols(work_item, parent.parent, parent)
         return
@@ -176,12 +173,13 @@ class ReportHTML(Report):
         doc, tag, text, line = self.tuple
         with table:
             with tag("tr"):
-                for _ in range(pmlib.data.level + 1):
-                    line("th", "")
-                line("th", "Name")
-                line("th", "Count")
-                line("th", "Success")
-                line("th", "Failure")
+                max_len = len(pmlib.data.root.symbols)
+                with tag("th", colspan=max_len, klass="heading"):
+                    doc.asis(Symbol.space.value)
+
+                line("th", "Count", klass="heading")
+                line("th", "Success", klass="heading")
+                line("th", "Failure", klass="heading")
 
             for _item in self.entries:
                 tr = tag("tr")
@@ -192,19 +190,40 @@ class ReportHTML(Report):
         doc, tag, text, line = self.tuple
         if item.is_root is True:
             with tr:
-                with tag("td", colspan="{0:d}".format(pmlib.data.level), klass="tree"):
-                    doc.asis("&#9523;")
+                max_len = len(item.symbols)
+                with tag("td", colspan=max_len, klass="tree"):
+                    doc.asis(Symbol.root.value)
+
                 line("td", "{0:s}".format(item.name), colspan="4")
         else:
             with tr:
+                max_len = len(item.symbols)
+
+                for i in range(max_len - 1, -1, -1):
+                    _symbol = item.symbols[i]
+                    if _symbol == "":
+                        item.symbols.pop(i)
+                    else:
+                        break
+
+                colspan = max_len - len(item.symbols) + 1
+
+                if item.type is Entry.tray:
+                    colspan += 3
+
+                last = len(item.symbols) - 1
+                n = 0
                 for _symbol in item.symbols:
                     if _symbol == "":
-                        _symbol = "&#8200;"
+                        _symbol = Symbol.space.value
 
-                    with tag("td", klass="tree"):
-                        doc.asis(_symbol)
-
-                line("td", item.name)
+                    if (n == last) and (colspan != 0):
+                        with tag("td", klass="tree", colspan=colspan):
+                            doc.asis(_symbol)
+                    else:
+                        with tag("td", klass="tree"):
+                            doc.asis(_symbol)
+                    n += 1
 
                 if item.type is Entry.folder:
                     line("td", "{0:d}".format(item.report.count))
@@ -227,7 +246,7 @@ class ReportHTML(Report):
     def create(self) -> bool:
         for _item in pmlib.data.entries:
             symbols = []
-            for _ in range(pmlib.data.level + 1):
+            for _ in range(pmlib.data.level + 2):
                 symbols.append("")
 
             _item.symbols = symbols
