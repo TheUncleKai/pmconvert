@@ -67,7 +67,7 @@ table {
     border: none;
     text-align: left;
     outline: none;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 """
@@ -107,6 +107,7 @@ class ReportHTML(Report):
         level = item.navigation.level
 
         if item.is_root is True:
+            item.symbols[level + 1] = "{0:s}{1:s}".format(Symbol.space.value, item.name)
             item.symbols[0] = Symbol.root.value
             return
 
@@ -188,47 +189,42 @@ class ReportHTML(Report):
 
     def _create_item(self, tr, item: Item):
         doc, tag, text, line = self.tuple
-        if item.is_root is True:
-            with tr:
-                max_len = len(item.symbols)
-                with tag("td", colspan=max_len, klass="tree"):
-                    doc.asis(Symbol.root.value)
+        with tr:
+            max_len = len(item.symbols)
 
-                line("td", "{0:s}".format(item.name), colspan="4")
-        else:
-            with tr:
-                max_len = len(item.symbols)
+            for i in range(max_len - 1, -1, -1):
+                _symbol = item.symbols[i]
+                if _symbol == "":
+                    item.symbols.pop(i)
+                else:
+                    break
 
-                for i in range(max_len - 1, -1, -1):
-                    _symbol = item.symbols[i]
-                    if _symbol == "":
-                        item.symbols.pop(i)
-                    else:
-                        break
+            colspan = max_len - len(item.symbols) + 1
 
-                colspan = max_len - len(item.symbols) + 1
+            if item.type is Entry.tray:
+                colspan += 3
 
-                if item.type is Entry.tray:
-                    colspan += 3
+            if item.type is Entry.mailbox:
+                colspan += 3
 
-                last = len(item.symbols) - 1
-                n = 0
-                for _symbol in item.symbols:
-                    if _symbol == "":
-                        _symbol = Symbol.space.value
+            last = len(item.symbols) - 1
+            n = 0
+            for _symbol in item.symbols:
+                if _symbol == "":
+                    _symbol = Symbol.space.value
 
-                    if (n == last) and (colspan != 0):
-                        with tag("td", klass="tree", colspan=colspan):
-                            doc.asis(_symbol)
-                    else:
-                        with tag("td", klass="tree"):
-                            doc.asis(_symbol)
-                    n += 1
+                if (n == last) and (colspan != 0):
+                    with tag("td", klass="tree", colspan=colspan):
+                        doc.asis(_symbol)
+                else:
+                    with tag("td", klass="tree"):
+                        doc.asis(_symbol)
+                n += 1
 
-                if item.type is Entry.folder:
-                    line("td", "{0:d}".format(item.report.count))
-                    line("td", "{0:d}".format(item.report.success))
-                    line("td", "{0:d}".format(item.report.failure))
+            if item.type is Entry.folder:
+                line("td", "{0:d}".format(item.report.count))
+                line("td", "{0:d}".format(item.report.success))
+                line("td", "{0:d}".format(item.report.failure))
         return
 
     def _sort_entries(self, item: Item):
