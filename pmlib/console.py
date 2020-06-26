@@ -157,7 +157,6 @@ class Console(object):
             return False
 
         hierarchy.sort()
-
         root = pmlib.data.root
 
         # check = self._create_folder(pmlib.data.root)
