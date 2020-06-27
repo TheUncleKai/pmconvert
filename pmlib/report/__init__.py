@@ -17,5 +17,51 @@
 #
 
 __all__ = [
+    "html",
+
+    "Reporter",
+    "Report"
+]
+
+import abc
+from abc import ABCMeta
+from typing import List
+
+import pmlib
+
+from pmlib.item import Item
+from bbutil.utils import get_attribute
+
+
+class Reporter(metaclass=ABCMeta):
+
+    def __init__(self):
+        self.root: Item = pmlib.data.root
+        self.name: str = ""
+        self.desc: str = ""
+        return
+
+    @abc.abstractmethod
+    def create(self) -> bool:
+        pass
+
+
+_reporter = [
     "html"
 ]
+
+
+class Report(object):
+
+    def __init__(self):
+        self.modules: List[Reporter] = []
+        return
+
+    def init(self):
+        for _item in _reporter:
+            path = "pmlib.report.{0:s}".format(_item)
+            name = get_attribute(path, "report")
+            attr = get_attribute(path, name)
+            c = attr()
+            self.modules.append(c)
+        return

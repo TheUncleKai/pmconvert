@@ -15,8 +15,6 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
-import abc
-from abc import ABCMeta
 
 from dataclasses import dataclass, field
 from enum import Enum
@@ -34,8 +32,7 @@ __all__ = [
     "Navigation",
     "Counter",
     "EntryData",
-    "Position",
-    "Report"
+    "Position"
 ]
 
 
@@ -205,14 +202,3 @@ class Position(object):
     @property
     def length(self) -> int:
         return self.end - self.start
-
-
-class Report(metaclass=ABCMeta):
-
-    def __init__(self, item: EntryData):
-        self.root: EntryData = item
-        return
-
-    @abc.abstractmethod
-    def create(self) -> bool:
-        pass

@@ -25,7 +25,10 @@ import pmlib
 from yattag import Doc, indent
 from pmlib.item import Item, sort_items
 
-from pmlib.types import Entry, Report
+from pmlib.types import Entry
+from pmlib.report import Reporter
+
+report = "ReportHTML"
 
 __all__ = [
     "ReportHTML"
@@ -93,10 +96,12 @@ class Symbol(Enum):
 
 
 # noinspection PyTypeChecker
-class ReportHTML(Report):
+class ReportHTML(Reporter):
 
-    def __init__(self, item: Item):
-        Report.__init__(self, item)
+    def __init__(self):
+        Reporter.__init__(self)
+        self.name = "HTML"
+        self.desc = "Create HTML report"
         self.tuple: tuple = Doc().ttl()
         self.entries: List[Item] = []
         return
@@ -252,7 +257,7 @@ class ReportHTML(Report):
         self._sort_entries(pmlib.data.root)
 
         filename = os.path.abspath(os.path.normpath("{0:s}/report.html".format(pmlib.config.target_path)))
-        pmlib.log.inform("REPORT", filename)
+        pmlib.log.inform(self.name, filename)
 
         doc, tag, text, line = self.tuple
         doc.asis('<!DOCTYPE html>')
