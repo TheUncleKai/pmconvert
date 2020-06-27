@@ -44,17 +44,11 @@ class ReportExcel(Reporter):
         self.sheet: xlsxwriter.workbook.Worksheet = None
         self.row: int = 0
 
-        self.column_count = 0
-        self.column_success = 0
-        self.column_failure = 0
+        self.column_tree: int = 0
+        self.column_count: int = 1
+        self.column_success: int = 2
+        self.column_failure: int = 3
         return
-
-    # ┓  9491  2513  BOX DRAWINGS HEAVY DOWN AND LEFT
-    # ┳  9523  2533  BOX DRAWINGS HEAVY DOWN AND HORIZONTAL
-    # ━  9473  2501  BOX DRAWINGS HEAVY HORIZONTAL
-    # ┃  9475  2503  BOX DRAWINGS HEAVY VERTICAL
-    # ┗  9495  2517  BOX DRAWINGS HEAVY UP AND RIGHT
-    # ┣  9507  2523  BOX DRAWINGS HEAVY VERTICAL AND RIGHT
 
     def format_symbol(self, symbol: Symbol, item: Item) -> str:
         symbol_value = self.get_symbol(symbol)
@@ -64,22 +58,22 @@ class ReportExcel(Reporter):
 
     def get_symbol(self, symbol: Symbol) -> str:
         if symbol is Symbol.root:
-            return chr(0x2513)
+            return chr(0x2510)
 
         if symbol is Symbol.tray:
-            return chr(0x2533)
+            return chr(0x252C)
 
         if symbol is Symbol.horizontal:
-            return chr(0x2501)
+            return chr(0x2500)
 
         if symbol is Symbol.vertical:
-            return chr(0x2503)
+            return chr(0x2502)
 
         if symbol is Symbol.last:
-            return chr(0x2517)
+            return chr(0x2514)
 
         if symbol is Symbol.child:
-            return chr(0x2523)
+            return chr(0x251C)
 
         if symbol is Symbol.mailbox:
             return chr(0x1F4BC)
@@ -102,20 +96,12 @@ class ReportExcel(Reporter):
         cell_format.set_font_size(10)
         cell_format.set_bold()
 
-        level = pmlib.data.level
-
-        _columns = []
-
-        for i in range(0, level + 1):
-            _columns.append("")
-
-        _columns.append("Count")
-        _columns.append("Success")
-        _columns.append("Failure")
-
-        self.column_count = level + 1
-        self.column_success = level + 2
-        self.column_failure = level + 3
+        _columns = [
+            "Tree",
+            "Count",
+            "Success",
+            "Failure"
+        ]
 
         n = 0
         for _column in _columns:
@@ -127,11 +113,28 @@ class ReportExcel(Reporter):
         return
 
     def _write_item(self, item: Item):
+        cell_tree = self.workbook.add_format()
+        cell_tree.set_font_name("Lucida Console")
+        cell_tree.set_font_size(10)
+        cell_tree.set_align("left")
+        cell_tree.set_align("vcenter")
+
         cell_format = self.workbook.add_format()
         cell_format.set_font_name("Arial")
         cell_format.set_font_size(10)
+        cell_format.set_align("right")
+        cell_format.set_align("vcenter")
 
-        self.sheet.write_string(self.row, item.navigation.level, item.name, cell_format)
+        text = ""
+        for _symbol in item.symbols:
+            if _symbol == "":
+                _symbol = self.get_symbol(Symbol.space)
+            if text == "":
+                text = _symbol
+            else:
+                text += _symbol
+
+        self.sheet.write_string(self.row, self.column_tree, text, cell_tree)
         self.sheet.write_number(self.row, self.column_count, item.report.count, cell_format)
         self.sheet.write_number(self.row, self.column_success, item.report.success, cell_format)
         self.sheet.write_number(self.row, self.column_failure, item.report.failure, cell_format)
@@ -139,6 +142,7 @@ class ReportExcel(Reporter):
         return
 
     def _create_item(self, item: Item):
+        self.set_symbol(item)
         self._write_item(item)
 
         for _item in sorted(item.children, key=sort_items):
@@ -159,6 +163,8 @@ class ReportExcel(Reporter):
 
         self._create_header()
         self._create_item(pmlib.data.root)
+
+        self.sheet.set_column(0, 0, 50)
 
         pmlib.log.inform(self.name, "Write number of rows {0:d}".format(self.row))
         try:
