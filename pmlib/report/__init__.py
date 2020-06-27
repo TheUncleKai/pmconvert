@@ -18,6 +18,7 @@
 
 __all__ = [
     "html",
+    "excel",
 
     "Reporter",
     "Report"
@@ -47,7 +48,8 @@ class Reporter(metaclass=ABCMeta):
 
 
 _reporter = [
-    "html"
+    "html",
+    "excel"
 ]
 
 
