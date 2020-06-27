@@ -16,19 +16,6 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
-import abc
-from abc import ABCMeta
-
-import pmlib
-from pmlib.item import Item
-
-
-class Report(metaclass=ABCMeta):
-
-    def __init__(self):
-        self.root: Item = pmlib.data.root
-        return
-
-    @abc.abstractmethod
-    def create(self) -> bool:
-        pass
+__all__ = [
+    "html"
+]

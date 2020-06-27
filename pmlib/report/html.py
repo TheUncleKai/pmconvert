@@ -25,9 +25,7 @@ import pmlib
 from yattag import Doc, indent
 from pmlib.item import Item, sort_items
 
-from pmlib.report import Report
-from pmlib.types import Entry
-
+from pmlib.types import Entry, Report
 
 __all__ = [
     "ReportHTML"
