@@ -16,6 +16,7 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+import os
 import mailbox
 import email
 
@@ -26,15 +27,19 @@ import pmlib
 from pmlib.convert import Converter
 from pmlib.item import Item
 from pmlib.types import Source, Target, Position
+from pmlib.utils import convert_bytes
 
 
 converter = "ConvertPMM2MBox"
+source = Source.pegasus
+target = Target.mbox
 
 
 class ConvertPMM2MBox(Converter):
 
     def __init__(self):
         Converter.__init__(self)
+        self.errors: list = []
         self.source = Source.pegasus
         self.target = Target.mbox
         self.mbox: Union[mailbox.mbox, None] = None
@@ -54,9 +59,22 @@ class ConvertPMM2MBox(Converter):
         self.f.seek(128)  # move to first mail
 
         path = "{0:s}.mbx".format(self.item.target)
+        self.item.report.filename = path
+        self.item.report.target_format = Target.mbox
         self.mbox = mailbox.mbox(path)
         self.mbox.lock()
         return True
+
+    def _store_fault(self, number: int, value: bytes) -> str:
+        filename = "{0:s}_{1:d}.eml".format(self.item.target, number)
+        filename = os.path.abspath(os.path.normpath(filename))
+
+        error_text = "Unable to decode mail {0:d} in {1:s}".format(number, self.item.name)
+
+        f = open(filename, mode="wb")
+        f.write(value)
+        f.close()
+        return error_text
 
     def run(self) -> bool:
         n = 0
@@ -75,21 +93,39 @@ class ConvertPMM2MBox(Converter):
                 start = n + 1
             n += 1
 
-        self.item.count = len(self.positions)
+        self.item.mail_count = len(self.positions)
 
-        pmlib.log.inform("EXPORT",
-                         "Export {0:s} with {1:d} ({2:d})".format(self.item.name, self.item.count, self.item.size))
+        count = "{0:d}".format(self.item.mail_count).rjust(6, " ")
+        size = convert_bytes(self.item.size)
 
-        progress = pmlib.log.progress(self.item.count)
+        pmlib.log.inform(self.item.parent.name,
+                         "{0:s} mails for {1:s} ({2:s})".format(count, self.item.name, size))
 
+        progress = pmlib.log.progress(self.item.mail_count)
+
+        n = 0
         for _pos in self.positions:
             value = stream[_pos.start:_pos.end]
+
             msg = email.message_from_bytes(value)
-            self.mbox.add(msg)
+            try:
+                self.mbox.add(msg)
+            except UnicodeEncodeError as e:
+                text = self._store_fault(n, value)
+                self.item.add_error(n, text, e)
+                self.item.report.failure += 1
+            else:
+                self.item.report.success += 1
+
             self.mbox.flush()
             progress.inc()
+            n += 1
+            self.item.report.mail_count = n
 
         pmlib.log.clear()
+
+        for _error in self.errors:
+            pmlib.log.error(_error)
         return True
 
     def close(self) -> bool:

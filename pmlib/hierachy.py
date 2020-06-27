@@ -17,35 +17,28 @@
 #
 
 import os
-from typing import Union, List
+from typing import List
 
 import pmlib
+import pmlib.log
 
-from pmlib.item import Item
-from pmlib.types import Entry
-import json
+from pmlib.item import Item, sort_items
+from pmlib.types import Entry, Counter
 
 __all__ = [
     "Hierarchy"
 ]
 
 
-def _sort_name(item: Item):
-    return item.name
-
-
 class Hierarchy(object):
 
     def __init__(self):
-
-        self.root: Union[Item, None] = None
-        self.count: int = 0
-        self.entries: List[Item] = []
-        self.root: Union[Item, None] = None
+        self.counter = Counter()
         return
 
-    def parse(self, folder: str, root: str) -> bool:
-        filename = os.path.abspath(os.path.normpath("{0:s}/HIERARCH.PM".format(folder)))
+    @staticmethod
+    def parse() -> bool:
+        filename = os.path.abspath(os.path.normpath("{0:s}/HIERARCH.PM".format(pmlib.config.pegasus_path)))
         if os.path.exists(filename) is False:
             pmlib.log.error("Unable to find HIERARCH.PM")
             return False
@@ -54,25 +47,26 @@ class Hierarchy(object):
 
         f = open(filename, mode='r')
         for line in f:
-            data = Item(line, folder)
+            data = Item(line)
             if data.valid is False:
                 continue
-            if data.name == root:
+            if data.name == pmlib.config.pegasus_root:
                 data.is_root = True
-                self.root = data
-            self.entries.append(data)
-            self.count += 1
+                pmlib.data.root = data
+            pmlib.data.entries.append(data)
         f.close()
 
-        if self.root is None:
+        count = len(pmlib.data.entries)
+
+        if pmlib.data.root is None:
             pmlib.log.warn("Hierarchy", "No root found!")
             return False
 
-        if self.count == 0:
+        if count == 0:
             pmlib.log.warn("Hierarchy", "No entries found!")
             return False
 
-        pmlib.log.inform("Hierarchy", "{0:d} entries found!".format(self.count))
+        pmlib.log.inform("Hierarchy", "{0:d} entries found!".format(count))
         return True
 
     def _write_entry(self, root: list, item: Item):
@@ -81,23 +75,9 @@ class Hierarchy(object):
             root.append(item.name)
         else:
             content = []
-            for _item in sorted(item.children, key=_sort_name):
+            for _item in sorted(item.children, key=sort_items):
                 self._write_entry(content, _item)
             root.append({item.name: content})
-
-        return
-
-    def export_json(self, filename: str):
-        root = []
-
-        self._write_entry(root, self.root)
-
-        file = os.path.abspath(os.path.normpath(filename))
-        pmlib.log.inform("Hierarchy", "Export hierarchy to {0:s}".format(file))
-
-        f = open(file, mode="w")
-        json.dump(root, f, indent=4)
-        f.close()
         return
 
     def _add_folder(self, folder: List[Item], item: Item):
@@ -110,11 +90,56 @@ class Hierarchy(object):
                 self._add_folder(folder, _item)
         return
 
-    def sort(self, folder: List[Item]):
-        self.root.populate(self.entries)
+    @staticmethod
+    def _count_item(level: int, counter: Counter, item: Item, max_count: int):
+        item.navigation.level = level + 1
+        item.navigation.count = max_count
+        item.navigation.number = counter.item
+        if item.navigation.number == (max_count - 1):
+            item.navigation.is_last = True
+        counter.inc_item()
+        return
 
-        for _item in self.entries:
-            _item.populate(self.entries)
+    def _index(self, item: Item):
 
-        self._add_folder(folder, self.root)
+        item.navigation.index = self.counter.index
+        self.counter.inc_index()
+
+        item.navigation.children = len(item.children)
+
+        max_count = len(item.children)
+        counter = Counter()
+
+        if item.type is not Entry.folder:
+            item.navigation.tray = self.counter.tray
+            self.counter.inc_tray()
+            pmlib.data.tray[item.navigation.tray] = item
+
+        for _item in sorted(item.children, key=sort_items):
+            if _item.type is Entry.folder:
+                self._count_item(item.navigation.level, counter, _item, max_count)
+                self._index(_item)
+
+        for _item in sorted(item.children, key=sort_items):
+            if _item.type is Entry.tray:
+                self._count_item(item.navigation.level, counter, _item, max_count)
+                self._index(_item)
+        return
+
+    def sort(self):
+        root: Item = pmlib.data.root
+
+        root.navigation.level = 0
+        root.navigation.is_last = True
+        root.populate(pmlib.data.entries)
+
+        for _item in pmlib.data.entries:
+            _item.populate(pmlib.data.entries)
+
+        self._index(root)
+
+        for _item in pmlib.data.entries:
+            pmlib.data.index[_item.navigation.index] = _item
+            if _item.navigation.level > pmlib.data.level:
+                pmlib.data.level = _item.navigation.level
         return

@@ -17,9 +17,12 @@
 #
 
 import abc
+
+import pmlib
+
 from abc import ABCMeta
 
-from typing import Union, List
+from typing import Union, List, Tuple, Any
 
 from pmlib.types import Source, Target
 from pmlib.item import Item
@@ -61,20 +64,23 @@ class Converter(metaclass=ABCMeta):
 class Convert(object):
 
     def __init__(self):
-        self.modules: List[Converter] = []
+        self.modules: List[Tuple] = []
         return
 
     def init(self):
         for _item in _converter:
             path = "pmlib.convert.{0:s}".format(_item)
+            source = get_attribute(path, "source")
+            target = get_attribute(path, "target")
             name = get_attribute(path, "converter")
             attr = get_attribute(path, name)
-            c = attr()
-            self.modules.append(c)
+            item = (source, target, attr)
+            self.modules.append(item)
         return
 
-    def get_converter(self, source: Source, target: Target) -> Union[None, Converter]:
+    def get_converter(self, source: Source) -> Union[None, Any]:
         for _item in self.modules:
-            if (_item.source is source) and (_item.target is target):
-                return _item
+            item_source, item_target, attr = _item
+            if (item_source is source) and (item_target is pmlib.config.target_type):
+                return attr
         return None

@@ -97,5 +97,5 @@ ENV/
 # Rope project settings
 .ropeproject
 
-test.bat
+test*.bat
 hierachy.json

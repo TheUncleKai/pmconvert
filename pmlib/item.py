@@ -15,12 +15,16 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
+
 import os
 import re
-from typing import List
+from typing import List, Dict
+from dataclasses import dataclass, field
 
 import pmlib
-from pmlib.types import Source, Entry, Folder, Object, EntryData
+import pmlib.log
+
+from pmlib.types import Source, Entry, Folder, Object, EntryData, ErrorReport, EntryReport, Navigation
 
 from pmlib.utils import get_entry_type, get_entry_state
 
@@ -29,16 +33,24 @@ _entry = re.compile("(?P<Type>[0-9]+),(?P<State>[0-9]+),\"(?P<Data>.+)\",\"(?P<P
 _object = re.compile("(?P<ID>.+):(?P<Name>.+)")
 _folder = re.compile("(?P<ID>.+):(?P<Folder>.+):(?P<Name>.+)")
 
+__all__ = [
+    "Item",
+    "sort_items",
+    "Data"
+]
+
 
 class Item(EntryData):
 
     def __repr__(self):
         return self.name
 
-    def _check_folder(self, root: str) -> bool:
+    def _check_folder(self) -> bool:
         if self.data is None:
             pmlib.log.error("No folder object found!")
             return False
+
+        root = pmlib.config.pegasus_path
 
         filename = os.path.normpath("{0:s}/{1:s}.PMM".format(root, self.data.name))
         if os.path.exists(filename):
@@ -72,7 +84,7 @@ class Item(EntryData):
 
         return True
 
-    def __init__(self, line: str, root: str):
+    def __init__(self, line: str):
         m = _entry.search(line)
         if m is None:
             return
@@ -83,9 +95,12 @@ class Item(EntryData):
 
         self.children = []
         self.mails = []
+        self.symbols = []
+        self.navigation = Navigation()
         self.type = get_entry_type(int(m.group("Type")))
         self.state = get_entry_state(int(m.group("State")))
         self.name = str(m.group("Name"))
+        self.report = EntryReport()
 
         if parent_id.valid is True:
             self.parent_id = parent_id.id
@@ -107,7 +122,7 @@ class Item(EntryData):
             return
 
         if self.type is Entry.folder:
-            check = self._check_folder(root)
+            check = self._check_folder()
             if check is False:
                 return
 
@@ -118,16 +133,23 @@ class Item(EntryData):
         if self.is_sorted is True:
             return
 
-        for _item in datalist:
-            if _item.is_sorted is True:
-                continue
+        children = []
 
+        for _item in datalist:
             if _item.parent_id == self.id:
-                self.children.append(_item)
+                children.append(_item)
                 _item.parent = self
 
                 if _item.type is Entry.folder:
                     _item.is_sorted = True
+
+        for _item in sorted(children, key=sort_items):
+            if _item.type is Entry.folder:
+                self.children.append(_item)
+
+        for _item in sorted(children, key=sort_items):
+            if _item.type is Entry.tray:
+                self.children.append(_item)
 
         self.is_sorted = True
         return
@@ -147,6 +169,45 @@ class Item(EntryData):
         result = os.path.abspath(os.path.normpath(ret))
         return result
 
-    def set_target(self, target: str):
-        self.target = self._set_target(target, "", self)
+    def _set_full_name(self, path: str, item: EntryData) -> str:
+        ret = ""
+        if path != "":
+            ret = path
+
+        if item.parent is None:
+            if ret == "":
+                ret = "{0:s}".format(item.name)
+            else:
+                ret = "{0:s}\\{1:s}".format(ret, item.name)
+        else:
+            _data = self._set_full_name(ret, item.parent)
+            ret = "{0:s}\\{1:s}".format(_data, item.name)
+
+        return ret
+
+    def add_error(self, number: int, text: str, exception: Exception):
+        error = ErrorReport()
+        error.number = number
+        error.exception = exception
+        error.text = text
+        self.report.error.append(error)
         return
+
+    def set_target(self):
+        self.target = self._set_target(pmlib.config.target_path, "", self)
+        self.full_name = self._set_full_name("", self)
+        return
+
+
+def sort_items(item: Item):
+    return item.name
+
+
+@dataclass()
+class Data(object):
+
+    level: int = 0
+    entries: List[Item] = field(default_factory=list)
+    index: Dict[int, Item] = field(default_factory=dict)
+    tray: Dict[int, Item] = field(default_factory=dict)
+    root: Item = field(default=None)

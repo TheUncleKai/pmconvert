@@ -27,6 +27,10 @@ __all__ = [
     "State",
     "Object",
     "Folder",
+    "EntryReport",
+    "ErrorReport",
+    "Navigation",
+    "Counter",
     "EntryData",
     "Position"
 ]
@@ -101,6 +105,68 @@ class Folder(Object):
 
 
 @dataclass(init=False)
+class ErrorReport(object):
+
+    number: int = 0
+    text: str = ""
+    exception: Exception = None
+
+    def __repr__(self):
+        return self.text
+
+
+@dataclass(init=True)
+class EntryReport(object):
+
+    filename: str = ""
+    target_format: Target = Target.unknown
+    error: List[ErrorReport] = field(default_factory=list)
+    count: int = 0
+    success: int = 0
+    failure: int = 0
+
+    def __repr__(self):
+        return self.filename
+
+
+@dataclass(init=False)
+class Navigation(object):
+
+    tray: int = 0
+    index: int = 0
+    number: int = 0
+    count: int = 0
+    children: int = 0
+    level: int = 0
+    is_last: bool = False
+
+
+@dataclass(init=False)
+class Counter(object):
+
+    index: int = 0
+    tray: int = 0
+    folder: int = 0
+    item: int = 0
+
+    def inc_index(self):
+        self.index += 1
+        return
+
+    def inc_tray(self):
+        self.tray += 1
+        return
+
+    def inc_folder(self):
+        self.folder += 1
+        return
+
+    def inc_item(self):
+        self.item += 1
+        return
+
+
+@dataclass(init=True)
 class EntryData(object):
 
     type: Entry = Entry.unknown
@@ -108,15 +174,19 @@ class EntryData(object):
 
     data: Union[Object, Folder] = None
     size: int = 0
-    count: int = 0
+    mail_count: int = 0
     children: List[Any] = field(default_factory=list)
     target: str = ""
+    full_name: str = ""
     parent: Any = None
     parent_id: str = ""
     name: str = ""
     valid: bool = False
     is_root: bool = False
     is_sorted: bool = False
+    symbols: List[str] = field(default_factory=list)
+    navigation: Navigation = field(default_factory=Navigation)
+    report: EntryReport = field(default_factory=EntryReport)
 
     @property
     def id(self) -> str:

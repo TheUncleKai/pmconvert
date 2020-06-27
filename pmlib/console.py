@@ -18,26 +18,24 @@
 
 import os
 from optparse import OptionParser
-from typing import Union
 
 import pmlib
-from pmlib.mailbox import Mailbox
-from pmlib.types import Target
-from pmlib.utils import create_folder
+import pmlib.log
+
+from pmlib import config
+
+from pmlib.convert import Convert
+from pmlib.hierachy import Hierarchy
+from pmlib.item import Item, sort_items
+from pmlib.types import Entry
+from pmlib.utils import create_folder, clean_folder
+from pmlib.report.html import ReportHTML
 
 
 class Console(object):
 
     def __init__(self):
-
-        self.options = None
-        self.folder: str = ""
-        self.root: str = ""
-        self.hierachy_file: str = ""
-        self.target: str = ""
-        self.export: Target = Target.unknown
-
-        self.mailbox: Union[Mailbox, None] = None
+        self._converter: Convert = Convert()
 
         usage = "usage: %prog [options] arg1 arg2"
         self.parser: OptionParser = OptionParser(usage=usage)
@@ -47,67 +45,133 @@ class Console(object):
                                default="")
         self.parser.add_option("-r", "--root", help="pegasus mail root mailbox", type="string", metavar="<MAILBOX>",
                                default="My mailbox")
-        self.parser.add_option("-a", "--hierachy", help="hierachy json file", type="string", metavar="<FILENAME>",
-                               default=None)
-        self.parser.add_option("-x", "--export", help="hierachy json file", type="string", metavar="mbox|maildir",
+        self.parser.add_option("-x", "--export", help="type for data export", type="string", metavar="mbox|maildir",
                                default="mbox")
-        self.parser.add_option("-t", "--target", help="export target path", type="string", metavar="<FOLDER>",
+        self.parser.add_option("-t", "--target", help="target path for export", type="string", metavar="<FOLDER>",
                                default="")
         return
 
+    def _create_folder(self, item: Item) -> bool:
+        item.set_target()
+
+        if item.type is Entry.folder:
+            return True
+
+        if os.path.exists(item.target):
+            pmlib.log.inform("Mailbox", "Remove folder {0:s}".format(item.target))
+            check = clean_folder(item.target)
+            if check is False:
+                return False
+
+        check = create_folder(item.target)
+        if check is False:
+            pmlib.log.error("Unable to create target folder: {0:s}".format(item.target))
+            return False
+
+        for _item in item.children:
+            check = self._create_folder(_item)
+            if check is False:
+                return False
+
+        return True
+
+    def _convert_item(self, item: Item) -> bool:
+        attr = self._converter.get_converter(item.data.type)
+        if attr is None:
+            text = "Unable to convert folder {0:s} with type {1:s} to {2:s}".format(item.name,
+                                                                                    item.data.type.name,
+                                                                                    pmlib.config.target_type.name)
+            pmlib.log.warn("Mailbox", text)
+            return True
+
+        converter = attr()
+        check = converter.prepare(item)
+        if check is False:
+            return False
+
+        check = converter.run()
+        if check is False:
+            return False
+
+        check = converter.close()
+        if check is False:
+            return False
+
+        for _error in item.report.error:
+            pmlib.log.warn(item.name, _error.text)
+
+        return True
+
+    def _export_item(self, item: Item) -> bool:
+
+        if item.type is Entry.folder:
+            check = self._convert_item(item)
+            if check is False:
+                return False
+        else:
+            pmlib.log.inform("TRAY", item.full_name)
+
+            # first convert folder
+            for _item in sorted(item.children, key=sort_items):
+                if _item.type is Entry.folder:
+                    check = self._export_item(_item)
+                    if check is False:
+                        return False
+
+            # then trays
+            for _item in sorted(item.children, key=sort_items):
+                if _item.type is not Entry.folder:
+                    check = self._export_item(_item)
+                    if check is False:
+                        return False
+
+        return True
+
     def prepare(self) -> bool:
         (options, args) = self.parser.parse_args()
-        self.options = options
 
-        if os.path.exists(options.folder) is False:
-            pmlib.log.error("Unable to find mail folder: {0:s}".format(options.folder))
+        check = config.parse(options)
+        if check is False:
             return False
 
-        if options.target == "":
-            pmlib.log.error("Need to give target path!")
-            return False
+        pmlib.log.setup(level=config.verbose)
 
-        if options.export == "mbox":
-            self.export = Target.mbox
+        pmlib.log.inform("Mail folder", "{0:s}".format(config.pegasus_path))
+        pmlib.log.inform("Root Mailbox", "{0:s}".format(config.pegasus_root))
+        pmlib.log.inform("Target folder", "{0:s}".format(config.target_path))
 
-        if options.export == "maildir":
-            self.export = Target.maildir
-
-        if self.export is Target.unknown:
-            pmlib.log.error("Invalid export format: {0:s}".format(options.export))
-            return False
-
-        pmlib.log.setup(level=options.verbose)
-
-        self.folder = options.folder
-        self.root = options.root
-        self.hierachy_file = options.hierachy
-        self.target = os.path.abspath(os.path.normpath(options.target))
-
-        pmlib.log.inform("Mail folder", "{0:s}".format(self.folder))
-        pmlib.log.inform("Root Mailbox", "{0:s}".format(self.root))
-        pmlib.log.inform("Target folder", "{0:s}".format(self.target))
-        if self.hierachy_file:
-            pmlib.log.inform("Hierachy file", "{0:s}".format(self.hierachy_file))
-
-        check = create_folder(self.target)
+        check = create_folder(config.target_path)
         if check is False:
             pmlib.log.error("Unable to create target folder!")
             return False
 
-        self.mailbox = Mailbox(self.root, self.target)
         return True
 
     def run(self) -> bool:
-        check = self.mailbox.init(self.folder)
-        if check is False:
+        self._converter.init()
+
+        hierarchy = Hierarchy()
+
+        count = hierarchy.parse()
+        if count == 0:
             return False
 
-        check = self.mailbox.convert(self.export)
-        if check is False:
-            return False
+        hierarchy.sort()
+        root = pmlib.data.root
+
+        # check = self._create_folder(pmlib.data.root)
+        # if check is False:
+        #     return False
+        #
+        # check = self._export_item(pmlib.data.root)
+        # if check is False:
+        #     return False
 
         return True
 
-    def close(self) -> bool:
-        return True
+    @staticmethod
+    def close() -> bool:
+
+        html = ReportHTML()
+        check = html.create()
+        return check
