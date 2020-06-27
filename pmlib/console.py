@@ -172,6 +172,6 @@ class Console(object):
     @staticmethod
     def close() -> bool:
 
-        html = ReportHTML()
+        html = ReportHTML(pmlib.data.root)
         check = html.create()
         return check

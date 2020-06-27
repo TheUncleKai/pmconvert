@@ -95,8 +95,8 @@ class Symbol(Enum):
 # noinspection PyTypeChecker
 class ReportHTML(Report):
 
-    def __init__(self):
-        Report.__init__(self)
+    def __init__(self, item: Item):
+        Report.__init__(self, item)
         self.tuple: tuple = Doc().ttl()
         self.entries: List[Item] = []
         return

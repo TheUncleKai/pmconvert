@@ -38,9 +38,6 @@ __all__ = [
     "Report"
 ]
 
-import pmlib
-from pmlib.item import Item
-
 
 class Entry(Enum):
 
@@ -212,8 +209,8 @@ class Position(object):
 
 class Report(metaclass=ABCMeta):
 
-    def __init__(self):
-        self.root: Item = pmlib.data.root
+    def __init__(self, item: EntryData):
+        self.root: EntryData = item
         return
 
     @abc.abstractmethod
