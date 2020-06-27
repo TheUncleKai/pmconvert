@@ -29,7 +29,7 @@ from pmlib.hierachy import Hierarchy
 from pmlib.item import Item, sort_items
 from pmlib.types import Entry
 from pmlib.utils import create_folder, clean_folder
-from pmlib.report.html import ReportHTML
+from pmlib.report import Report
 
 
 class Console(object):
@@ -172,6 +172,14 @@ class Console(object):
     @staticmethod
     def close() -> bool:
 
-        html = ReportHTML()
-        check = html.create()
-        return check
+        report = Report()
+
+        report.init()
+
+        for _report in report.modules:
+            pmlib.log.inform(_report.name, _report.desc)
+            check = _report.create()
+            if check is False:
+                return False
+
+        return True

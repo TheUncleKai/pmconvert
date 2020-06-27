@@ -18,16 +18,16 @@
 
 import os
 from typing import List
-from enum import Enum
 
 import pmlib
 
 from yattag import Doc, indent
 from pmlib.item import Item, sort_items
 
-from pmlib.report import Report
 from pmlib.types import Entry
+from pmlib.report import Reporter, Symbol
 
+report = "ReportHTML"
 
 __all__ = [
     "ReportHTML"
@@ -71,7 +71,6 @@ table {
 
 """
 
-
 # ┓  9491  2513  BOX DRAWINGS HEAVY DOWN AND LEFT
 # ┳  9523  2533  BOX DRAWINGS HEAVY DOWN AND HORIZONTAL
 # ━  9473  2501  BOX DRAWINGS HEAVY HORIZONTAL
@@ -80,71 +79,55 @@ table {
 # ┣  9507  2523  BOX DRAWINGS HEAVY VERTICAL AND RIGHT
 
 
-class Symbol(Enum):
-
-    root = "&#9491;"
-    tray = "&#9523;"
-    horizontal = "&#9473;"
-    vertical = "&#9475;"
-    last = "&#9495;"
-    child = "&#9507;"
-    mailbox = "&#128188;"
-    envelope = "&#128195;"
-    folder = "&#128193;"
-    space = "&#8200;"
-
-
 # noinspection PyTypeChecker
-class ReportHTML(Report):
+class ReportHTML(Reporter):
 
     def __init__(self):
-        Report.__init__(self)
+        Reporter.__init__(self)
+        self.name = "HTML"
+        self.desc = "Create HTML report"
         self.tuple: tuple = Doc().ttl()
         self.entries: List[Item] = []
         return
 
-    def _set_symbol(self, item: Item):
-        level = item.navigation.level
+    def format_symbol(self, symbol: Symbol, item: Item) -> str:
+        symbol_value = self.get_symbol(symbol)
+        space = self.get_symbol(Symbol.space)
+        ret = "{0:s}{1:s}{2:s}".format(symbol_value, space, item.name)
+        return ret
 
-        if item.is_root is True:
-            item.symbols[level + 1] = "{0:s}{1:s}{2:s}".format(Symbol.mailbox.value, Symbol.space.value, item.name)
-            item.symbols[0] = Symbol.root.value
-            return
+    def get_symbol(self, symbol: Symbol) -> str:
+        if symbol is Symbol.root:
+            return "&#9491;"
 
-        if item.type is Entry.tray:
-            item.symbols[level + 1] = "{0:s}{1:s}{2:s}".format(Symbol.folder.value, Symbol.space.value, item.name)
-            item.symbols[level] = Symbol.tray.value
+        if symbol is Symbol.tray:
+            return "&#9523;"
 
-        if item.type is Entry.folder:
-            item.symbols[level + 1] = "{0:s}{1:s}{2:s}".format(Symbol.envelope.value, Symbol.space.value, item.name)
-            item.symbols[level] = Symbol.horizontal.value
+        if symbol is Symbol.horizontal:
+            return "&#9473;"
 
-        self._set_parent_symbols(item, item.parent, item)
-        return
+        if symbol is Symbol.vertical:
+            return "&#9475;"
 
-    def _set_parent_symbols(self, work_item: Item, parent: Item, child: Item):
+        if symbol is Symbol.last:
+            return "&#9495;"
 
-        if parent is None:
-            return
+        if symbol is Symbol.child:
+            return "&#9507;"
 
-        level = parent.navigation.level
+        if symbol is Symbol.mailbox:
+            return "&#128188;"
 
-        if work_item.parent is parent:
-            if work_item.navigation.is_last is False:
-                work_item.symbols[level] = Symbol.child.value
-            else:
-                work_item.symbols[level] = Symbol.last.value
+        if symbol is Symbol.envelope:
+            return "&#128195;"
 
-        else:
-            if parent.navigation.is_last is True:
-                if child.navigation.is_last is False:
-                    work_item.symbols[level] = Symbol.vertical.value
-            else:
-                if child.navigation.is_last is False:
-                    work_item.symbols[level] = Symbol.vertical.value
+        if symbol is Symbol.folder:
+            return "&#128193;"
 
-        self._set_parent_symbols(work_item, parent.parent, parent)
-        return
+        if symbol is Symbol.space:
+            return "&#8200;"
+
+        return "&#8200;"
 
     def _create_head(self, head):
         doc, tag, text, line = self.tuple
@@ -176,7 +159,7 @@ class ReportHTML(Report):
             with tag("tr"):
                 max_len = len(pmlib.data.root.symbols)
                 with tag("th", colspan=max_len, klass="heading"):
-                    doc.asis(Symbol.space.value)
+                    doc.asis(self.get_symbol(Symbol.space))
 
                 line("th", "Count", klass="heading")
                 line("th", "Success", klass="heading")
@@ -210,9 +193,6 @@ class ReportHTML(Report):
             last = len(item.symbols) - 1
             n = 0
             for _symbol in item.symbols:
-                if _symbol == "":
-                    _symbol = Symbol.space.value
-
                 if (n == last) and (colspan != 0):
                     with tag("td", klass="tree", colspan=colspan):
                         doc.asis(_symbol)
@@ -248,13 +228,13 @@ class ReportHTML(Report):
             _item.symbols = symbols
 
         for _item in pmlib.data.entries:
-            self._set_symbol(_item)
+            self.set_symbol(_item)
 
         self.entries.append(pmlib.data.root)
         self._sort_entries(pmlib.data.root)
 
         filename = os.path.abspath(os.path.normpath("{0:s}/report.html".format(pmlib.config.target_path)))
-        pmlib.log.inform("REPORT", filename)
+        pmlib.log.inform(self.name, filename)
 
         doc, tag, text, line = self.tuple
         doc.asis('<!DOCTYPE html>')
