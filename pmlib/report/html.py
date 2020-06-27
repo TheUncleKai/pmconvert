@@ -53,8 +53,7 @@ table {
 }
 
 .heading {
-    font-family: "Arial, Helvetica, sans-serif;
-    color: blue;
+    font-family: Arial, Helvetica, sans-serif;
     border: none;
     text-align: left;
     outline: none;
@@ -62,7 +61,7 @@ table {
 }
 
 .tree {
-    font-family: "Lucida Console", Courier, monospace;
+    font-family: Arial, Helvetica, sans-serif;
     color: blue;
     border: none;
     text-align: left;
@@ -89,7 +88,8 @@ class Symbol(Enum):
     vertical = "&#9475;"
     last = "&#9495;"
     child = "&#9507;"
-    envelope = "&#9993;"
+    mailbox = "&#128188;"
+    envelope = "&#128195;"
     folder = "&#128193;"
     space = "&#8200;"
 
@@ -107,7 +107,7 @@ class ReportHTML(Report):
         level = item.navigation.level
 
         if item.is_root is True:
-            item.symbols[level + 1] = "{0:s}{1:s}".format(Symbol.space.value, item.name)
+            item.symbols[level + 1] = "{0:s}{1:s}{2:s}".format(Symbol.mailbox.value, Symbol.space.value, item.name)
             item.symbols[0] = Symbol.root.value
             return
 
@@ -249,8 +249,6 @@ class ReportHTML(Report):
 
         for _item in pmlib.data.entries:
             self._set_symbol(_item)
-
-        root = pmlib.data.root
 
         self.entries.append(pmlib.data.root)
         self._sort_entries(pmlib.data.root)
