@@ -102,13 +102,8 @@ class Hierarchy(object):
 
     def _index(self, item: Item):
 
-        self.counter.inc_index()
-
         max_count = len(item.children)
         counter = Counter()
-
-        if item.type is not Entry.folder:
-            self.counter.inc_tray()
 
         for _item in sorted(item.children, key=sort_items):
             if _item.type is Entry.folder:

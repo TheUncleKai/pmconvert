@@ -140,22 +140,7 @@ class Navigation(object):
 @dataclass(init=False)
 class Counter(object):
 
-    index: int = 0
-    tray: int = 0
-    folder: int = 0
     item: int = 0
-
-    def inc_index(self):
-        self.index += 1
-        return
-
-    def inc_tray(self):
-        self.tray += 1
-        return
-
-    def inc_folder(self):
-        self.folder += 1
-        return
 
     def inc_item(self):
         self.item += 1
