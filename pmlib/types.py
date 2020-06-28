@@ -24,7 +24,6 @@ __all__ = [
     "Entry",
     "Source",
     "Target",
-    "State",
     "Object",
     "Folder",
     "EntryReport",
@@ -132,11 +131,8 @@ class EntryReport(object):
 @dataclass(init=False)
 class Navigation(object):
 
-    tray: int = 0
-    index: int = 0
     number: int = 0
     count: int = 0
-    children: int = 0
     level: int = 0
     is_last: bool = False
 
@@ -144,22 +140,7 @@ class Navigation(object):
 @dataclass(init=False)
 class Counter(object):
 
-    index: int = 0
-    tray: int = 0
-    folder: int = 0
     item: int = 0
-
-    def inc_index(self):
-        self.index += 1
-        return
-
-    def inc_tray(self):
-        self.tray += 1
-        return
-
-    def inc_folder(self):
-        self.folder += 1
-        return
 
     def inc_item(self):
         self.item += 1
@@ -170,7 +151,6 @@ class Counter(object):
 class EntryData(object):
 
     type: Entry = Entry.unknown
-    state: State = State.unknown
 
     data: Union[Object, Folder] = None
     size: int = 0

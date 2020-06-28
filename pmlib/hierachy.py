@@ -102,18 +102,8 @@ class Hierarchy(object):
 
     def _index(self, item: Item):
 
-        item.navigation.index = self.counter.index
-        self.counter.inc_index()
-
-        item.navigation.children = len(item.children)
-
         max_count = len(item.children)
         counter = Counter()
-
-        if item.type is not Entry.folder:
-            item.navigation.tray = self.counter.tray
-            self.counter.inc_tray()
-            pmlib.data.tray[item.navigation.tray] = item
 
         for _item in sorted(item.children, key=sort_items):
             if _item.type is Entry.folder:
@@ -126,6 +116,24 @@ class Hierarchy(object):
                 self._index(_item)
         return
 
+    def _prune(self, item: Item):
+
+        children = []
+
+        for _item in item.children:
+            if _item.valid is True:
+                children.append(_item)
+
+        item.children = children
+
+        for _item in item.children:
+            if _item.type is Entry.mailbox:
+                self._prune(_item)
+
+            if _item.type is Entry.tray:
+                self._prune(_item)
+        return
+
     def sort(self):
         root: Item = pmlib.data.root
 
@@ -136,10 +144,11 @@ class Hierarchy(object):
         for _item in pmlib.data.entries:
             _item.populate(pmlib.data.entries)
 
+        self._prune(root)
+
         self._index(root)
 
         for _item in pmlib.data.entries:
-            pmlib.data.index[_item.navigation.index] = _item
             if _item.navigation.level > pmlib.data.level:
                 pmlib.data.level = _item.navigation.level
         return

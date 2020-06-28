@@ -18,7 +18,7 @@
 
 import os
 import re
-from typing import List, Dict
+from typing import List
 from dataclasses import dataclass, field
 
 import pmlib
@@ -26,7 +26,7 @@ import pmlib.log
 
 from pmlib.types import Source, Entry, Folder, Object, EntryData, ErrorReport, EntryReport, Navigation
 
-from pmlib.utils import get_entry_type, get_entry_state
+from pmlib.utils import get_entry_type
 
 
 _entry = re.compile("(?P<Type>[0-9]+),(?P<State>[0-9]+),\"(?P<Data>.+)\",\"(?P<Parent>.*)\",\"(?P<Name>.*)\"")
@@ -51,16 +51,19 @@ class Item(EntryData):
             return False
 
         root = pmlib.config.pegasus_path
+        self.valid = False
 
         filename = os.path.normpath("{0:s}/{1:s}.PMM".format(root, self.data.name))
         if os.path.exists(filename):
             self.data.type = Source.pegasus
             self.data.filename = filename
+            self.valid = True
 
         filename = os.path.normpath("{0:s}/{1:s}.MBX".format(root, self.data.name))
         if os.path.exists(filename):
             self.data.type = Source.unix
             self.data.filename = filename
+            self.valid = True
 
         if self.data.type is Source.unix:
             filename = os.path.normpath("{0:s}/{1:s}.PMG".format(root, self.data.name))
@@ -98,7 +101,6 @@ class Item(EntryData):
         self.symbols = []
         self.navigation = Navigation()
         self.type = get_entry_type(int(m.group("Type")))
-        self.state = get_entry_state(int(m.group("State")))
         self.name = str(m.group("Name"))
         self.report = EntryReport()
 
@@ -115,15 +117,16 @@ class Item(EntryData):
             data = Object(m_object)
             if data.valid is True:
                 self.data = data
+
         if self.data is None:
             return
 
-        if self.type is None or self.state is None:
+        if self.type is None:
             return
 
         if self.type is Entry.folder:
             check = self._check_folder()
-            if check is False:
+            if (check is False) and (self.valid is False):
                 return
 
         self.valid = True
@@ -142,6 +145,11 @@ class Item(EntryData):
 
                 if _item.type is Entry.folder:
                     _item.is_sorted = True
+
+        if (self.type is Entry.tray) and (len(children) == 0):
+            self.valid = False
+            self.is_sorted = True
+            return
 
         for _item in sorted(children, key=sort_items):
             if _item.type is Entry.folder:
@@ -208,6 +216,4 @@ class Data(object):
 
     level: int = 0
     entries: List[Item] = field(default_factory=list)
-    index: Dict[int, Item] = field(default_factory=dict)
-    tray: Dict[int, Item] = field(default_factory=dict)
     root: Item = field(default=None)

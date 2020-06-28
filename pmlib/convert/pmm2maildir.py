@@ -32,17 +32,17 @@ from pmlib.utils import convert_bytes
 
 converter = "ConvertPMM2MBox"
 source = Source.pegasus
-target = Target.mbox
+target = Target.maildir
 
 
-class ConvertPMM2MBox(Converter):
+class ConvertPMM2Maildir(Converter):
 
     def __init__(self):
         Converter.__init__(self)
         self.errors: list = []
         self.source = Source.pegasus
         self.target = Target.mbox
-        self.mbox: Union[mailbox.mbox, None] = None
+        self.maildir: Union[mailbox.Maildir, None] = None
 
         self.f = None
         self.positions: List[Position] = []
