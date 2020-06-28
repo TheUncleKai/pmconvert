@@ -116,6 +116,24 @@ class Hierarchy(object):
                 self._index(_item)
         return
 
+    def _prune(self, item: Item):
+
+        children = []
+
+        for _item in item.children:
+            if _item.valid is True:
+                children.append(_item)
+
+        item.children = children
+
+        for _item in item.children:
+            if _item.type is Entry.mailbox:
+                self._prune(_item)
+
+            if _item.type is Entry.tray:
+                self._prune(_item)
+        return
+
     def sort(self):
         root: Item = pmlib.data.root
 
@@ -125,6 +143,8 @@ class Hierarchy(object):
 
         for _item in pmlib.data.entries:
             _item.populate(pmlib.data.entries)
+
+        self._prune(root)
 
         self._index(root)
 

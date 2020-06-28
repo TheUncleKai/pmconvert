@@ -166,6 +166,8 @@ class ReportHTML(Reporter):
                 line("th", "Failure", klass="heading")
 
             for _item in self.entries:
+                if _item.valid is False:
+                    continue
                 tr = tag("tr")
                 self._create_item(tr, _item)
         return

@@ -51,16 +51,19 @@ class Item(EntryData):
             return False
 
         root = pmlib.config.pegasus_path
+        self.valid = False
 
         filename = os.path.normpath("{0:s}/{1:s}.PMM".format(root, self.data.name))
         if os.path.exists(filename):
             self.data.type = Source.pegasus
             self.data.filename = filename
+            self.valid = True
 
         filename = os.path.normpath("{0:s}/{1:s}.MBX".format(root, self.data.name))
         if os.path.exists(filename):
             self.data.type = Source.unix
             self.data.filename = filename
+            self.valid = True
 
         if self.data.type is Source.unix:
             filename = os.path.normpath("{0:s}/{1:s}.PMG".format(root, self.data.name))
@@ -114,6 +117,7 @@ class Item(EntryData):
             data = Object(m_object)
             if data.valid is True:
                 self.data = data
+
         if self.data is None:
             return
 
@@ -122,7 +126,7 @@ class Item(EntryData):
 
         if self.type is Entry.folder:
             check = self._check_folder()
-            if check is False:
+            if (check is False) and (self.valid is False):
                 return
 
         self.valid = True
@@ -141,6 +145,11 @@ class Item(EntryData):
 
                 if _item.type is Entry.folder:
                     _item.is_sorted = True
+
+        if (self.type is Entry.tray) and (len(children) == 0):
+            self.valid = False
+            self.is_sorted = True
+            return
 
         for _item in sorted(children, key=sort_items):
             if _item.type is Entry.folder:
