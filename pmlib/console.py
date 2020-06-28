@@ -158,13 +158,13 @@ class Console(object):
 
         hierarchy.sort()
 
-        # check = self._create_folder(pmlib.data.root)
-        # if check is False:
-        #     return False
-        #
-        # check = self._export_item(pmlib.data.root)
-        # if check is False:
-        #     return False
+        check = self._create_folder(pmlib.data.root)
+        if check is False:
+            return False
+
+        check = self._export_item(pmlib.data.root)
+        if check is False:
+            return False
 
         return True
 
@@ -174,8 +174,6 @@ class Console(object):
         report = Report()
 
         report.init()
-
-        root = pmlib.data.root
 
         for _report in report.modules:
             pmlib.log.inform(_report.name, _report.desc)
