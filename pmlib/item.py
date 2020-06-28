@@ -26,7 +26,7 @@ import pmlib.log
 
 from pmlib.types import Source, Entry, Folder, Object, EntryData, ErrorReport, EntryReport, Navigation
 
-from pmlib.utils import get_entry_type, get_entry_state
+from pmlib.utils import get_entry_type
 
 
 _entry = re.compile("(?P<Type>[0-9]+),(?P<State>[0-9]+),\"(?P<Data>.+)\",\"(?P<Parent>.*)\",\"(?P<Name>.*)\"")
@@ -98,7 +98,6 @@ class Item(EntryData):
         self.symbols = []
         self.navigation = Navigation()
         self.type = get_entry_type(int(m.group("Type")))
-        self.state = get_entry_state(int(m.group("State")))
         self.name = str(m.group("Name"))
         self.report = EntryReport()
 
@@ -118,7 +117,7 @@ class Item(EntryData):
         if self.data is None:
             return
 
-        if self.type is None or self.state is None:
+        if self.type is None:
             return
 
         if self.type is Entry.folder:

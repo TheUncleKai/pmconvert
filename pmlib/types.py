@@ -24,7 +24,6 @@ __all__ = [
     "Entry",
     "Source",
     "Target",
-    "State",
     "Object",
     "Folder",
     "EntryReport",
@@ -170,7 +169,6 @@ class Counter(object):
 class EntryData(object):
 
     type: Entry = Entry.unknown
-    state: State = State.unknown
 
     data: Union[Object, Folder] = None
     size: int = 0

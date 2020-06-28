@@ -16,19 +16,19 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
-import os, shutil
+import os
+import shutil
 from typing import Union
 
 import pmlib.log
 
-from pmlib.types import Entry, State
+from pmlib.types import Entry
 
 __all__ = [
     "create_folder",
     "clean_folder",
     "convert_bytes",
-    "get_entry_type",
-    "get_entry_state"
+    "get_entry_type"
 ]
 
 
@@ -70,16 +70,6 @@ def get_entry_type(value: int) -> Union[Entry, None]:
     _ret = None
 
     for _item in Entry:
-        if _item.value == value:
-            _ret = _item
-            break
-    return _ret
-
-
-def get_entry_state(value: int) -> Union[State, None]:
-    _ret = None
-
-    for _item in State:
         if _item.value == value:
             _ret = _item
             break
