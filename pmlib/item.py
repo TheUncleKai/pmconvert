@@ -207,6 +207,4 @@ class Data(object):
 
     level: int = 0
     entries: List[Item] = field(default_factory=list)
-    index: Dict[int, Item] = field(default_factory=dict)
-    tray: Dict[int, Item] = field(default_factory=dict)
     root: Item = field(default=None)
