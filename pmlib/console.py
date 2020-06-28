@@ -87,11 +87,9 @@ class Console(object):
 
         attr = self._converter.get_converter()
         if attr is None:
-            text = "Unable to convert folder {0:s} with type {1:s} to {2:s}".format(item.name,
-                                                                                    item.data.type.name,
-                                                                                    pmlib.config.target_type.name)
+            text = "Unable to find converter with type {0:s}".format(pmlib.config.target_type.name)
             pmlib.log.warn("Mailbox", text)
-            return True
+            return False
 
         converter = attr(item)
         check = converter.prepare()

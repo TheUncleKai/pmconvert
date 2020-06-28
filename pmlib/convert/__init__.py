@@ -24,19 +24,21 @@ from abc import ABCMeta
 
 from typing import Union, List, Tuple, Any
 
-from pmlib.types import Source, Target
+from pmlib.types import Target
 from pmlib.item import Item
 from bbutil.utils import get_attribute
 
 __all__ = [
     "mbx",
+    "maildir",
 
     "Converter",
     "Convert"
 ]
 
 _converter = [
-    "mbx"
+    "mbx",
+    "maildir"
 ]
 
 
