@@ -157,15 +157,14 @@ class Console(object):
             return False
 
         hierarchy.sort()
-        root = pmlib.data.root
 
-        # check = self._create_folder(pmlib.data.root)
-        # if check is False:
-        #     return False
-        #
-        # check = self._export_item(pmlib.data.root)
-        # if check is False:
-        #     return False
+        check = self._create_folder(pmlib.data.root)
+        if check is False:
+            return False
+
+        check = self._export_item(pmlib.data.root)
+        if check is False:
+            return False
 
         return True
 

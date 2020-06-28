@@ -131,11 +131,8 @@ class EntryReport(object):
 @dataclass(init=False)
 class Navigation(object):
 
-    tray: int = 0
-    index: int = 0
     number: int = 0
     count: int = 0
-    children: int = 0
     level: int = 0
     is_last: bool = False
 
