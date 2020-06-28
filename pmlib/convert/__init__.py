@@ -29,27 +29,26 @@ from pmlib.item import Item
 from bbutil.utils import get_attribute
 
 __all__ = [
-    "pmm2mbx",
+    "mbx",
 
     "Converter",
     "Convert"
 ]
 
 _converter = [
-    "pmm2mbx"
+    "mbx"
 ]
 
 
 class Converter(metaclass=ABCMeta):
 
-    def __init__(self):
-        self.item: Union[Item, None] = None
-        self.source: Source = Source.unknown
+    def __init__(self, root: Item):
+        self.root: Item = root
         self.target: Target = Target.unknown
         return
 
     @abc.abstractmethod
-    def prepare(self, item: Item) -> bool:
+    def prepare(self) -> bool:
         pass
 
     @abc.abstractmethod
@@ -70,17 +69,16 @@ class Convert(object):
     def init(self):
         for _item in _converter:
             path = "pmlib.convert.{0:s}".format(_item)
-            source = get_attribute(path, "source")
             target = get_attribute(path, "target")
             name = get_attribute(path, "converter")
             attr = get_attribute(path, name)
-            item = (source, target, attr)
+            item = (target, attr)
             self.modules.append(item)
         return
 
-    def get_converter(self, source: Source) -> Union[None, Any]:
+    def get_converter(self) -> Union[None, Any]:
         for _item in self.modules:
-            item_source, item_target, attr = _item
-            if (item_source is source) and (item_target is pmlib.config.target_type):
+            item_target, attr = _item
+            if item_target is pmlib.config.target_type:
                 return attr
         return None
