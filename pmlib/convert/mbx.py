@@ -20,7 +20,7 @@ import os
 import mailbox
 import email
 
-from typing import List, Union
+from typing import List
 
 import pmlib
 
@@ -53,7 +53,12 @@ class ConvertMBox(Converter):
         f.close()
         return error_text
 
-    def _run_mbx(self, item: Item) -> bool:
+    @staticmethod
+    def _run_mbx(item: Item) -> bool:
+        pmlib.log.warn(item.parent.name, "Unix mailbox is not yet implemented: {0:s}".format(item.name))
+        return True
+
+    def _run_pmm(self, item: Item) -> bool:
         path = "{0:s}.mbx".format(item.target)
         item.report.filename = path
         item.report.target_format = Target.mbox
@@ -151,8 +156,12 @@ class ConvertMBox(Converter):
     def _convert(self, item: Item) -> bool:
 
         if item.type is Entry.folder:
-            if item.data.type is Source.pegasus:
+            if item.data.type is Source.unix:
                 check = self._run_mbx(item)
+                return check
+
+            if item.data.type is Source.pegasus:
+                check = self._run_pmm(item)
                 return check
         else:
             pmlib.log.inform("TRAY", item.full_name)
