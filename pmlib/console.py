@@ -23,7 +23,6 @@ import pmlib.log
 
 from pmlib import config
 
-from pmlib.convert import Convert
 from pmlib.hierachy import Hierarchy
 from pmlib.utils import create_folder
 from pmlib.report import Report
@@ -32,8 +31,6 @@ from pmlib.report import Report
 class Console(object):
 
     def __init__(self):
-        self._converter: Convert = Convert()
-
         usage = "usage: %prog [options] arg1 arg2"
         self.parser: OptionParser = OptionParser(usage=usage)
         self.parser.add_option("-v", "--verbose", help="run verbose level [0..3]", type="int", metavar="1",
@@ -72,9 +69,8 @@ class Console(object):
 
         return True
 
-    def run(self) -> bool:
-        self._converter.init()
-
+    @staticmethod
+    def run() -> bool:
         hierarchy = Hierarchy()
 
         count = hierarchy.parse()
@@ -85,22 +81,21 @@ class Console(object):
 
         item = pmlib.data.root
 
-        attr = self._converter.get_converter()
-        if attr is None:
+        target = pmlib.manager.get_target(pmlib.config.target_type)
+        if target is None:
             text = "Unable to find converter with type {0:s}".format(pmlib.config.target_type.name)
             pmlib.log.warn("Mailbox", text)
             return False
 
-        converter = attr(item)
-        check = converter.prepare()
+        check = target.prepare(item)
         if check is False:
             return False
 
-        check = converter.run()
+        check = target.run()
         if check is False:
             return False
 
-        check = converter.close()
+        check = target.close()
         if check is False:
             return False
 
