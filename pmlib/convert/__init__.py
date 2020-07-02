@@ -76,16 +76,28 @@ class Manager(object):
         self.source: List[SourceBase] = []
         self.target: List[TargetBase] = []
 
+        import pmlib.convert.source
         for _item in pmlib.convert.source.__all__:
             path = "pmlib.convert.source.{0:s}".format(_item)
-            target = get_attribute(path, "name")
-            attr = get_attribute(path, target)
+            name = get_attribute(path, "name")
+            if name is None:
+                continue
+
+            attr = get_attribute(path, name)
+            if attr is None:
+                continue
             self.source.append(attr())
 
-        for _item in pmlib.convert.source.__all__:
+        import pmlib.convert.target
+        for _item in pmlib.convert.target.__all__:
             path = "pmlib.convert.target.{0:s}".format(_item)
-            target = get_attribute(path, "name")
-            attr = get_attribute(path, target)
+            name = get_attribute(path, "name")
+            if name is None:
+                continue
+
+            attr = get_attribute(path, name)
+            if attr is None:
+                continue
             self.target.append(attr())
         return
 

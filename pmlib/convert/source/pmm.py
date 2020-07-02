@@ -31,17 +31,17 @@ from pmlib.utils import convert_bytes
 
 __all__ = [
     "name",
-    "SourceMBX"
+    "SourcePMM"
 ]
 
-name = "SourceMBX"
+name = "SourcePMM"
 
 
-class SourceMBX(SourceBase):
+class SourcePMM(SourceBase):
 
     def __init__(self):
         SourceBase.__init__(self)
-        self.source: Source = Source.unix
+        self.source: Source = Source.pegasus
         return
 
     @staticmethod

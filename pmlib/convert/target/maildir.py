@@ -28,7 +28,7 @@ from pmlib.item import Item, sort_items
 from pmlib.types import Target, Entry
 from pmlib.utils import clean_folder, create_folder
 
-name = "TargetMBOX"
+name = "TargetMaildir"
 
 __all__ = [
     "name",
