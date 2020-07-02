@@ -23,7 +23,7 @@ import pmlib
 
 from pmlib.convert import TargetBase
 from pmlib.item import Item, sort_items
-from pmlib.types import Source, Target, Entry
+from pmlib.types import Target, Entry
 from pmlib.utils import clean_folder, create_folder
 
 name = "TargetMBOX"
@@ -53,30 +53,6 @@ class TargetMBOX(TargetBase):
         f.close()
         return error_text
 
-    @staticmethod
-    def _run_mbx(item: Item) -> bool:
-        pmlib.log.warn(item.parent.name, "Unix mailbox is not yet implemented: {0:s}".format(item.name))
-        return True
-
-    def _convert_item(self, item: Item, source: Source) -> bool:
-        path = "{0:s}.mbx".format(item.target)
-        item.report.filename = path
-        item.report.target_format = Target.mbox
-
-        reader = Reader()
-
-        read = reader.get_reader(source)
-        if read is None:
-            return False
-
-        mbox = mailbox.mbox(path)
-        mbox.lock()
-
-        read.read(item, mbox)
-
-        mbox.unlock()
-        return True
-
     def _create_folder(self, item: Item) -> bool:
         item.set_target()
 
@@ -104,16 +80,24 @@ class TargetMBOX(TargetBase):
     def _convert(self, item: Item) -> bool:
 
         if item.type is Entry.folder:
-            reader =
+            source = pmlib.manager.get_source(item.data.type)
 
+            if source is None:
+                pmlib.log.warn(item.name,
+                               "Mailbox format is not yet implemented: {0:s}".format(item.data.type.name))
+                return True
 
-            if item.data.type is Source.unix:
-                check = self._run_mbx(item)
-                return check
+            path = "{0:s}.mbx".format(item.target)
+            item.report.filename = path
+            item.report.target_format = Target.mbox
 
-            if item.data.type is Source.pegasus:
-                check = self._run_pmm(item)
-                return check
+            mbox = mailbox.mbox(path)
+            mbox.lock()
+
+            check = source.read(item, mbox)
+
+            mbox.unlock()
+            return check
         else:
             pmlib.log.inform("TRAY", item.full_name)
 

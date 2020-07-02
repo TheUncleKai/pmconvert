@@ -46,7 +46,7 @@ class SourceBase(metaclass=ABCMeta):
         return
 
     @abc.abstractmethod
-    def read(self, item: Item, box: mailbox.Mailbox) -> int:
+    def read(self, item: Item, box: mailbox.Mailbox) -> bool:
         pass
 
 

@@ -56,7 +56,7 @@ class SourceMBX(SourceBase):
         f.close()
         return error_text
 
-    def read(self, item: Item, box: mailbox.Mailbox) -> int:
+    def read(self, item: Item, box: mailbox.Mailbox) -> bool:
         try:
             f = open(item.data.filename, mode='rb')
         except OSError as e:
@@ -116,4 +116,4 @@ class SourceMBX(SourceBase):
             pmlib.log.error(_error.text)
 
         f.close()
-        return item.report.count
+        return True
