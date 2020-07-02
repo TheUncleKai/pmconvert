@@ -89,7 +89,7 @@ class TargetMBOX(TargetBase):
 
             path = "{0:s}.mbx".format(item.target)
             item.report.filename = path
-            item.report.target_format = Target.mbox
+            item.report.target_format = self.target
 
             mbox = mailbox.mbox(path)
             mbox.lock()

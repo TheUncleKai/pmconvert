@@ -18,16 +18,15 @@
 
 import os
 import mailbox
-import email
 
-from typing import List, Union
+from typing import Union
 
 import pmlib
 
 from pmlib.convert import TargetBase
 from pmlib.item import Item, sort_items
-from pmlib.types import Source, Target, Position, Entry
-from pmlib.utils import convert_bytes, clean_folder, create_folder
+from pmlib.types import Target, Entry
+from pmlib.utils import clean_folder, create_folder
 
 name = "TargetMBOX"
 
@@ -58,94 +57,25 @@ class TargetMaildir(TargetBase):
         f.close()
         return error_text
 
-    @staticmethod
-    def _run_mbx(item: Item) -> bool:
-        pmlib.log.warn(item.parent.name, "Unix mailbox is not yet implemented: {0:s}".format(item.name))
-        return True
-
-    def _run_pmm(self, item: Item, maildir: mailbox.Maildir) -> bool:
-        path = "{0:s}.mbx".format(item.target)
-        item.report.filename = path
-        item.report.target_format = Target.mbox
-
-        try:
-            f = open(item.data.filename, mode='rb')
-        except OSError as e:
-            pmlib.log.exception(e)
-            return False
-
-        f.seek(128)  # move to first mail
-
-        n = 0
-        count = 1
-
-        stream = f.read(-1)
-        item.size = len(stream)
-        positions: List[Position] = []
-
-        start = 0
-        for byte in stream:
-            if byte == 0x1a:  # 1A seperates the mails
-                pos = Position(start=start, end=n)
-                positions.append(pos)
-                count += 1
-                start = n + 1
-            n += 1
-
-        item.count = len(positions)
-
-        count = "{0:d}".format(item.count).rjust(6, " ")
-        size = convert_bytes(item.size)
-
-        pmlib.log.inform(item.parent.name,
-                         "{0:s} mails for {1:s} ({2:s})".format(count, item.name, size))
-
-        progress = pmlib.log.progress(item.count)
-
-        n = 0
-        for _pos in positions:
-            value = stream[_pos.start:_pos.end]
-
-            msg = email.message_from_bytes(value)
-            try:
-                maildir.add(msg)
-            except UnicodeEncodeError as e:
-                text = self._store_fault(item, n, value)
-                item.add_error(n, text, e)
-                item.report.failure += 1
-            else:
-                item.report.success += 1
-
-            maildir.flush()
-            progress.inc()
-            n += 1
-            item.report.count = n
-
-        pmlib.log.clear()
-
-        for _error in item.report.error:
-            pmlib.log.error(_error.text)
-
-        f.close()
-
-        return True
-
     def _convert(self, item: Item, maildir: mailbox.Maildir) -> bool:
 
         if item.type is Entry.folder:
             newmaildir = maildir.add_folder(item.name)
             newmaildir.lock()
 
-            if item.data.type is Source.unix:
-                check = self._run_mbx(item)
-                return check
+            source = pmlib.manager.get_source(item.data.type)
+            if source is None:
+                pmlib.log.warn(item.name,
+                               "Mailbox format is not yet implemented: {0:s}".format(item.data.type.name))
+                newmaildir.unlock()
+                return True
 
-            if item.data.type is Source.pegasus:
-                check = self._run_pmm(item, newmaildir)
-                return check
+            item.report.target_format = self.target
+            check = source.read(item, newmaildir)
 
             newmaildir.flush()
             newmaildir.unlock()
+            return check
         else:
             pmlib.log.inform("TRAY", item.full_name)
             newmaildir = maildir.add_folder(item.name)
