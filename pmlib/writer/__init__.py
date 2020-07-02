@@ -21,21 +21,50 @@ import abc
 import mailbox
 
 from abc import ABCMeta
-from typing import List
+from typing import List, Union
 
 from pmlib.item import Item
-from pmlib.types import Source, ErrorReport
+from pmlib.types import Source
+from bbutil.utils import get_attribute
+
+__all__ = [
+    "mbox",
+
+    "ReadBase",
+    "Reader"
+]
+
+_reader = [
+    "mbox"
+]
 
 
-class Reader(metaclass=ABCMeta):
+class ReadBase(metaclass=ABCMeta):
 
-    def __init__(self, root: Item, box: mailbox.Mailbox):
-        self.item: Item = root
+    def __init__(self):
         self.source: Source = Source.unknown
-        self.box: mailbox.Mailbox = box
-        self.error: List[ErrorReport] = []
         return
 
     @abc.abstractmethod
-    def read(self) -> int:
+    def read(self, item: Item, box: mailbox.Mailbox) -> int:
         pass
+
+
+class Reader(object):
+
+    def __init__(self):
+        self.modules: List[ReadBase] = []
+
+        for _item in _reader:
+            path = "pmlib.reader.{0:s}".format(_item)
+            name = get_attribute(path, "source")
+            attr = get_attribute(path, name)
+            c = attr()
+            self.modules.append(c)
+        return
+
+    def get_reader(self, source: Source) -> Union[None, ReadBase]:
+        for _item in self.modules:
+            if _item.source is source:
+                return _item
+        return None

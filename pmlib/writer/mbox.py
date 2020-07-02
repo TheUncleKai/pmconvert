@@ -24,18 +24,18 @@ from typing import List
 
 import pmlib
 
-from pmlib.reader import Reader
+from pmlib.reader import ReadBase
 from pmlib.item import Item
 from pmlib.types import Source, Position
 from pmlib.utils import convert_bytes
 
-source = "ReaderMBX"
+reader = "ReaderMBX"
 
 
-class ReaderMBX(Reader):
+class ReaderMBX(ReadBase):
 
-    def __init__(self, item: Item, box: mailbox.Mailbox):
-        Reader.__init__(self, item, box)
+    def __init__(self):
+        ReadBase.__init__(self)
         self.source: Source = Source.unix
         return
 
@@ -51,9 +51,9 @@ class ReaderMBX(Reader):
         f.close()
         return error_text
 
-    def read(self) -> int:
+    def read(self, item: Item, box: mailbox.Mailbox) -> int:
         try:
-            f = open(self.item.data.filename, mode='rb')
+            f = open(item.data.filename, mode='rb')
         except OSError as e:
             pmlib.log.exception(e)
             return False
@@ -64,7 +64,7 @@ class ReaderMBX(Reader):
         count = 1
 
         stream = f.read(-1)
-        self.item.size = len(stream)
+        item.size = len(stream)
         positions: List[Position] = []
 
         start = 0
@@ -76,15 +76,15 @@ class ReaderMBX(Reader):
                 start = n + 1
             n += 1
 
-        self.item.count = len(positions)
+        item.count = len(positions)
 
-        count = "{0:d}".format(self.item.count).rjust(6, " ")
-        size = convert_bytes(self.item.size)
+        count = "{0:d}".format(item.count).rjust(6, " ")
+        size = convert_bytes(item.size)
 
-        pmlib.log.inform(self.item.parent.name,
-                         "{0:s} mails for {1:s} ({2:s})".format(count, self.item.name, size))
+        pmlib.log.inform(item.parent.name,
+                         "{0:s} mails for {1:s} ({2:s})".format(count, item.name, size))
 
-        progress = pmlib.log.progress(self.item.count)
+        progress = pmlib.log.progress(item.count)
 
         n = 0
         for _pos in positions:
@@ -92,24 +92,23 @@ class ReaderMBX(Reader):
 
             msg = email.message_from_bytes(value)
             try:
-                self.box.add(msg)
+                box.add(msg)
             except UnicodeEncodeError as e:
-                text = self._store_fault(self.item, n, value)
-                self.item.add_error(n, text, e)
-                self.item.report.failure += 1
+                text = self._store_fault(item, n, value)
+                item.add_error(n, text, e)
+                item.report.failure += 1
             else:
-                self.item.report.success += 1
+                item.report.success += 1
 
-            self.box.flush()
+            box.flush()
             progress.inc()
             n += 1
-            self.item.report.count = n
+            item.report.count = n
 
         pmlib.log.clear()
 
-        for _error in self.item.report.error:
+        for _error in item.report.error:
             pmlib.log.error(_error.text)
 
         f.close()
-        self.box.unlock()
-        return self.item.report.count
+        return item.report.count

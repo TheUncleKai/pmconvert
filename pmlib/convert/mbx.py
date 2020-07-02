@@ -18,16 +18,15 @@
 
 import os
 import mailbox
-import email
 
-from typing import List
 
 import pmlib
 
 from pmlib.convert import Converter
+from pmlib.reader import Reader
 from pmlib.item import Item, sort_items
-from pmlib.types import Source, Target, Position, Entry
-from pmlib.utils import convert_bytes, clean_folder, create_folder
+from pmlib.types import Source, Target, Entry
+from pmlib.utils import clean_folder, create_folder
 
 
 converter = "ConvertMBox"
@@ -58,75 +57,23 @@ class ConvertMBox(Converter):
         pmlib.log.warn(item.parent.name, "Unix mailbox is not yet implemented: {0:s}".format(item.name))
         return True
 
-    def _run_pmm(self, item: Item) -> bool:
+    def _convert_item(self, item: Item, source: Source) -> bool:
         path = "{0:s}.mbx".format(item.target)
         item.report.filename = path
         item.report.target_format = Target.mbox
 
+        reader = Reader()
+
+        read = reader.get_reader(source)
+        if read is None:
+            return False
+
         mbox = mailbox.mbox(path)
         mbox.lock()
 
-        try:
-            f = open(item.data.filename, mode='rb')
-        except OSError as e:
-            pmlib.log.exception(e)
-            return False
+        read.read(item, mbox)
 
-        f.seek(128)  # move to first mail
-
-        n = 0
-        count = 1
-
-        stream = f.read(-1)
-        item.size = len(stream)
-        positions: List[Position] = []
-
-        start = 0
-        for byte in stream:
-            if byte == 0x1a:  # 1A seperates the mails
-                pos = Position(start=start, end=n)
-                positions.append(pos)
-                count += 1
-                start = n + 1
-            n += 1
-
-        item.count = len(positions)
-
-        count = "{0:d}".format(item.count).rjust(6, " ")
-        size = convert_bytes(item.size)
-
-        pmlib.log.inform(item.parent.name,
-                         "{0:s} mails for {1:s} ({2:s})".format(count, item.name, size))
-
-        progress = pmlib.log.progress(item.count)
-
-        n = 0
-        for _pos in positions:
-            value = stream[_pos.start:_pos.end]
-
-            msg = email.message_from_bytes(value)
-            try:
-                mbox.add(msg)
-            except UnicodeEncodeError as e:
-                text = self._store_fault(item, n, value)
-                item.add_error(n, text, e)
-                item.report.failure += 1
-            else:
-                item.report.success += 1
-
-            mbox.flush()
-            progress.inc()
-            n += 1
-            item.report.count = n
-
-        pmlib.log.clear()
-
-        for _error in item.report.error:
-            pmlib.log.error(_error.text)
-
-        f.close()
         mbox.unlock()
-
         return True
 
     def _create_folder(self, item: Item) -> bool:
@@ -156,6 +103,9 @@ class ConvertMBox(Converter):
     def _convert(self, item: Item) -> bool:
 
         if item.type is Entry.folder:
+            reader =
+
+
             if item.data.type is Source.unix:
                 check = self._run_mbx(item)
                 return check
