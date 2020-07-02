@@ -24,20 +24,23 @@ from typing import List, Union
 
 import pmlib
 
-from pmlib.convert import Converter
+from pmlib.convert import TargetBase
 from pmlib.item import Item, sort_items
 from pmlib.types import Source, Target, Position, Entry
 from pmlib.utils import convert_bytes, clean_folder, create_folder
 
+name = "TargetMBOX"
 
-converter = "ConvertMaildir"
-target = Target.maildir
+__all__ = [
+    "name",
+    "TargetMaildir"
+]
 
 
-class ConvertMaildir(Converter):
+class TargetMaildir(TargetBase):
 
-    def __init__(self, root: Item):
-        Converter.__init__(self, root)
+    def __init__(self):
+        TargetBase.__init__(self)
         self.target = Target.maildir
         self.maildir: Union[mailbox.Maildir, None] = None
         self._current: Union[mailbox.Maildir, None] = None
@@ -169,7 +172,8 @@ class ConvertMaildir(Converter):
 
         return True
 
-    def prepare(self) -> bool:
+    def prepare(self, root: Item) -> bool:
+        self.root = root
         self.root.set_target()
 
         if os.path.exists(self.root.target):

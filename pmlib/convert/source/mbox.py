@@ -24,18 +24,23 @@ from typing import List
 
 import pmlib
 
-from pmlib.reader import ReadBase
+from pmlib.convert import SourceBase
 from pmlib.item import Item
 from pmlib.types import Source, Position
 from pmlib.utils import convert_bytes
 
-reader = "ReaderMBX"
+__all__ = [
+    "name",
+    "SourceMBX"
+]
+
+name = "SourceMBX"
 
 
-class ReaderMBX(ReadBase):
+class SourceMBX(SourceBase):
 
     def __init__(self):
-        ReadBase.__init__(self)
+        SourceBase.__init__(self)
         self.source: Source = Source.unix
         return
 

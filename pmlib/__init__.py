@@ -18,7 +18,6 @@
 
 __all__ = [
     "convert",
-    "reader",
     "report",
 
     "conf",
@@ -78,6 +77,8 @@ __maintainer__ = __author__
 
 from pmlib.conf import Config
 from pmlib.item import Data
+from pmlib.convert import Manager
 
 config: Config = Config()
 data: Data = Data()
+manager: Manager = Manager()

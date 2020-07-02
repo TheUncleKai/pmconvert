@@ -19,24 +19,25 @@
 import os
 import mailbox
 
-
 import pmlib
 
-from pmlib.convert import Converter
-from pmlib.reader import Reader
+from pmlib.convert import TargetBase
 from pmlib.item import Item, sort_items
 from pmlib.types import Source, Target, Entry
 from pmlib.utils import clean_folder, create_folder
 
+name = "TargetMBOX"
 
-converter = "ConvertMBox"
-target = Target.mbox
+__all__ = [
+    "name",
+    "TargetMBOX"
+]
 
 
-class ConvertMBox(Converter):
+class TargetMBOX(TargetBase):
 
-    def __init__(self, root: Item):
-        Converter.__init__(self, root)
+    def __init__(self):
+        TargetBase.__init__(self)
         self.target = Target.mbox
         return
 
@@ -132,7 +133,8 @@ class ConvertMBox(Converter):
 
         return True
 
-    def prepare(self) -> bool:
+    def prepare(self, root: Item) -> bool:
+        self.root = root
         check = self._create_folder(self.root)
         if check is False:
             return False
