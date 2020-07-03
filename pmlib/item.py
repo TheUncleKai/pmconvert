@@ -22,7 +22,6 @@ from typing import List
 from dataclasses import dataclass, field
 
 import pmlib
-import pmlib.log
 
 from pmlib.types import Source, Entry, Folder, Object, EntryData, ErrorReport, EntryReport, Navigation
 

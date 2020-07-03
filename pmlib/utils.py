@@ -20,7 +20,7 @@ import os
 import shutil
 from typing import Union
 
-import pmlib.log
+import pmlib
 
 from pmlib.types import Entry
 
