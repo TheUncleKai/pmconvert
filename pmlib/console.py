@@ -19,7 +19,6 @@
 from optparse import OptionParser
 
 import pmlib
-import pmlib.log
 
 from pmlib import config
 

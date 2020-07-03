@@ -24,12 +24,13 @@ __all__ = [
     "console",
     "hierachy",
     "item",
-    "log",
     "types",
     "utils",
 
     "config",
-    "data"
+    "data",
+    "manager",
+    "log"
 ]
 
 
@@ -75,10 +76,12 @@ __version__ = "{0:d}.{1:d}.{2:d}.{3:d}".format(__milestone__, __major__, __minor
 #: package maintainer
 __maintainer__ = __author__
 
+from bbutil.logging import Logging
 from pmlib.conf import Config
 from pmlib.item import Data
 from pmlib.convert import Manager
 
+log: Logging = Logging()
 config: Config = Config()
 data: Data = Data()
 manager: Manager = Manager()

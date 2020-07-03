@@ -19,8 +19,6 @@
 import abc
 import mailbox
 
-import pmlib
-
 from abc import ABCMeta
 
 from typing import Union, List
