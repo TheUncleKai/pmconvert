@@ -18,5 +18,6 @@
 
 
 __all__ = [
-    "folder"
+    "folder",
+    "mail"
 ]

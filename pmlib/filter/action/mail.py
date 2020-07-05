@@ -15,3 +15,83 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
+
+
+from typing import Union
+
+from pmlib.filter.types import Action
+from pmlib.types import Folder
+
+__all__ = [
+    "Append",
+    "Delete",
+    "Extract",
+    "Forward"
+]
+
+
+class Delete(Action):
+
+    def __init__(self):
+        Action.__init__(self)
+        self.name = "Delete"
+        self.filter = "Delete"
+        return
+
+    def parse(self, data: str) -> bool:
+        return True
+
+    def result(self) -> str:
+        text = "Delete mail"
+        return text
+
+
+class Forward(Action):
+
+    def __init__(self):
+        Action.__init__(self)
+        self.name = "Forward"
+        self.filter = "Forward"
+        self.target: str = ""
+        return
+
+    def parse(self, data: str) -> bool:
+        return True
+
+    def result(self) -> str:
+        text = "Forward mail to {0:s}".format(self.target)
+        return text
+
+
+class Extract(Action):
+
+    def __init__(self):
+        Action.__init__(self)
+        self.name = "Extract"
+        self.filter = "eXtract"
+        self.target: str = ""
+        return
+
+    def parse(self, data: str) -> bool:
+        return True
+
+    def result(self) -> str:
+        text = "Extract data to {0:s}".format(self.target)
+        return text
+
+
+class Append(Action):
+
+    def __init__(self):
+        Action.__init__(self)
+        self.name = "Append"
+        self.filter = "Append"
+        self.target: str = ""
+        return
+
+    def parse(self, data: str) -> bool:
+        return True
+
+    def result(self) -> str:
+        text = "Append data to {0:s}".format(self.target)
+        return text

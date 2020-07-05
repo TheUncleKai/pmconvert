@@ -29,10 +29,6 @@ class RuleType(Enum):
     Age = "age"
 
 
-#     Delete = "Delete"
-#     Forward = "Forward"
-#     Extract = "eXtract"
-#     Append = "Append"
 #     Print = "Print"
 #     SendTextFile = "SendTextFile"
 #     SendBinaryFile = "SendBinaryFile"
@@ -57,6 +53,9 @@ class RuleType(Enum):
 
 
 class Action(metaclass=ABCMeta):
+
+    def __repr__(self):
+        return self.result()
 
     def __init__(self):
         self.name: str = ""
