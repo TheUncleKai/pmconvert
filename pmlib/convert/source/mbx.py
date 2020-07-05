@@ -20,68 +20,53 @@ import os
 import mailbox
 import email
 
-from typing import List
+from pathlib import Path
 
 import pmlib
 
 from pmlib.convert import SourceBase
 from pmlib.item import Item
-from pmlib.types import Source, Position
+from pmlib.types import Source
 from pmlib.utils import convert_bytes
 
 __all__ = [
     "name",
-    "SourcePMM"
+    "SourceMBX"
 ]
 
-name = "SourcePMM"
+name = "SourceMBX"
 
 
-class SourcePMM(SourceBase):
+class SourceMBX(SourceBase):
 
     def __init__(self):
         SourceBase.__init__(self)
-        self.source: Source = Source.pegasus
+        self.source: Source = Source.unix
         return
 
     @staticmethod
-    def _store_fault(item: Item, number: int, value: bytes) -> str:
+    def _store_fault(item: Item, number: int, mail: email.message.EmailMessage) -> str:
         filename = "{0:s}/{1:s}_{2:d}.eml".format(pmlib.config.target_path, item.name, number)
         filename = os.path.abspath(os.path.normpath(filename))
 
         error_text = "Unable to decode mail {0:d} in {1:s}".format(number, item.name)
 
-        f = open(filename, mode="wb")
-        f.write(value)
+        f = open(filename, mode="w", encoding='utf-8')
+        f.write(mail.as_string())
         f.close()
         return error_text
 
     def read(self, item: Item, box: mailbox.Mailbox) -> bool:
-        try:
-            f = open(item.data.filename, mode='rb')
-        except OSError as e:
-            pmlib.log.exception(e)
-            return False
 
-        f.seek(128)  # move to first mail
+        fs_info = Path(item.data.filename)
+        item.size = fs_info.stat().st_size
 
-        n = 0
-        count = 1
+        mbx = mailbox.mbox(item.data.filename)
+        mbx.lock()
 
-        stream = f.read(-1)
-        item.size = len(stream)
-        positions: List[Position] = []
+        max_count = len(mbx)
 
-        start = 0
-        for byte in stream:
-            if byte == 0x1a:  # 1A seperates the mails
-                pos = Position(start=start, end=n)
-                positions.append(pos)
-                count += 1
-                start = n + 1
-            n += 1
-
-        max_count = len(positions)
+        progress = pmlib.log.progress(max_count)
 
         count = "{0:d}".format(max_count).rjust(6, " ")
         size = convert_bytes(item.size)
@@ -89,17 +74,12 @@ class SourcePMM(SourceBase):
         pmlib.log.inform(item.parent.name,
                          "{0:s} mails for {1:s} ({2:s})".format(count, item.name, size))
 
-        progress = pmlib.log.progress(max_count)
-
         n = 0
-        for _pos in positions:
-            value = stream[_pos.start:_pos.end]
-
-            msg = email.message_from_bytes(value)
+        for msg in mbx:
             try:
                 box.add(msg)
             except UnicodeEncodeError as e:
-                text = self._store_fault(item, n, value)
+                text = self._store_fault(item, n, msg)
                 item.add_error(n, text, e)
                 item.report.failure += 1
             else:
@@ -115,5 +95,5 @@ class SourcePMM(SourceBase):
         for _error in item.report.error:
             pmlib.log.error(_error.text)
 
-        f.close()
+        mbx.unlock()
         return True

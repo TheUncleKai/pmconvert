@@ -17,7 +17,7 @@
 #
 
 
-__all__ = [
-    "mbx",
-    "pmm",
-]
+class Filter(object):
+
+    def __init__(self):
+        return

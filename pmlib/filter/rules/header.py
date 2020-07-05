@@ -17,7 +17,15 @@
 #
 
 
-__all__ = [
-    "mbx",
-    "pmm",
-]
+from pmlib.filter.types import Rule
+
+
+class RuleHeader(Rule):
+
+    def __init__(self):
+        Rule.__init__(self)
+        self.name = "Headers..."
+        return
+
+    def parse(self, data: str) -> bool:
+        return True
