@@ -34,6 +34,7 @@ class Label(Rule):
         Rule.__init__(self)
         self.name = "Label"
         self.rule = "Label"
+        self.condition = False
         return
 
     def parse(self, data: str) -> bool:

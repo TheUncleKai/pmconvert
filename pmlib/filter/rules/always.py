@@ -19,20 +19,21 @@
 from pmlib.filter.types import Rule
 
 __all__ = [
-    "Age"
+    "Always"
 ]
 
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Message age...
+# Always
 
-#  If age older than 50 Move "BNNW0F27:6321:FOL04467"
-#  If age absolute older than 280501000000 Move "BNNW0F27:6321:FOL04467"
+# Always MarkRead ""
 
 
-class Age(Rule):
+class Always(Rule):
 
     def __init__(self):
-        Rule.__init__(self, "Message age...")
+        Rule.__init__(self)
+        self.name = "Always"
+        self.rule = "Always"
         return
 
     def parse(self, data: str) -> bool:

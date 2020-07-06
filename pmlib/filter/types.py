@@ -16,7 +16,10 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 import abc
+
+from typing import Union
 from abc import ABCMeta
+from dataclasses import dataclass, field
 
 __all__ = [
     "Action",
@@ -43,11 +46,20 @@ class Action(metaclass=ABCMeta):
         pass
 
 
+@dataclass(init=True)
+class _Data(object):
+
+    line: str = ""
+    trigger: str = ""
+    action: str = ""
+
+
 class Rule(metaclass=ABCMeta):
 
-    def __init__(self):
-        self.name: str = ""
-        self.rule: str = ""
+    def __init__(self, name: str):
+        self.name: str = name
+        self.action: Union[Action, None] = None
+        self.data: _Data = _Data()
         return
 
     @abc.abstractmethod
