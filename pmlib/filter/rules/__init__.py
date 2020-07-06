@@ -20,6 +20,7 @@ __all__ = [
     "age",
     "expression",
     "header",
+    "label",
     "size",
     "date"
 ]

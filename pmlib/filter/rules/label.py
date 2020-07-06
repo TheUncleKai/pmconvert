@@ -15,41 +15,26 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
-import abc
-from abc import ABCMeta
+
+from pmlib.filter.types import Rule
 
 __all__ = [
-    "Action",
-    "Rule"
+    "Label"
 ]
 
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Label
 
-class Action(metaclass=ABCMeta):
-
-    def __repr__(self):
-        return self.result()
-
-    def __init__(self):
-        self.name: str = ""
-        self.filter: str = ""
-        return
-
-    @abc.abstractmethod
-    def parse(self, data: str) -> bool:
-        pass
-
-    @abc.abstractmethod
-    def result(self) -> str:
-        pass
+#  Label "LABEK"
 
 
-class Rule(metaclass=ABCMeta):
+class Label(Rule):
 
     def __init__(self):
-        self.name: str = ""
-        self.rule: str = ""
+        Rule.__init__(self)
+        self.name = "Label"
+        self.rule = "Label"
         return
 
-    @abc.abstractmethod
     def parse(self, data: str) -> bool:
-        pass
+        return True

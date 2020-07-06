@@ -61,6 +61,7 @@ class Header(Rule):
     def __init__(self):
         Rule.__init__(self)
         self.name = "Headers..."
+        self.rule = "header"
         return
 
     def parse(self, data: str) -> bool:

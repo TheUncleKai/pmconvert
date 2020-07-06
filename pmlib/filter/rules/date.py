@@ -35,6 +35,7 @@ class Date(Rule):
     def __init__(self):
         Rule.__init__(self)
         self.name = "Message date..."
+        self.rule = "date"
         return
 
     def parse(self, data: str) -> bool:

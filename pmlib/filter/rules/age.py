@@ -34,6 +34,7 @@ class Age(Rule):
     def __init__(self):
         Rule.__init__(self)
         self.name = "Message age..."
+        self.rule = "age"
         return
 
     def parse(self, data: str) -> bool:

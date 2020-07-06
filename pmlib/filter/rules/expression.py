@@ -44,6 +44,7 @@ class Expression(Rule):
     def __init__(self):
         Rule.__init__(self)
         self.name = "Expression..."
+        self.rule = "expression"
         return
 
     def parse(self, data: str) -> bool:
