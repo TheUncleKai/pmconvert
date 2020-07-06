@@ -21,46 +21,29 @@ from enum import Enum
 from pmlib.filter.types import Rule
 
 __all__ = [
-    "Header"
+    "Expression"
 ]
 
 
-class _Condition(Enum):
+class _ExpressionType(Enum):
 
-    To = "T"
-    From = "F"
-    Cc = "C"
-    Subject = "S"
-    ReplyTo = "R"
-    Sender = "E"
-
-
-class _Compare(Enum):
-
-    Contains = "contains"
-    Is = "is"
-
+    headers = "headers"
+    body = "body"
+    both = "both"
 
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Headers...
+# Expression...
 
-#  If header "T" contains "ubuntu-security-announce@lists.ubuntu.com" Move "2Q76BD9H:22D9:FOL034E4"
+#  If expression headers matches "From: <tech@kpslashhaven.net>" Move "YZDNYMAS:3D5D:FOL00816"
+#  If expression body matches "Return-path: <do-not-reply@archiveofourown.org>" Move "MDJIPSSK:0830:FOL00B44"
+#  If expression both matches "Return-path: <do-not-reply@archiveofourown.org>" Move "MDJIPSSK:0830:FOL00B44"
 
-#  T: To
-#  F: From
-#  C: Cc
-#  S: Subject
-#  R: Reply-to
-#  E: Sender
 
-#  contains
-#  is
-
-class Header(Rule):
+class Expression(Rule):
 
     def __init__(self):
         Rule.__init__(self)
-        self.name = "Headers..."
+        self.name = "Expression..."
         return
 
     def parse(self, data: str) -> bool:

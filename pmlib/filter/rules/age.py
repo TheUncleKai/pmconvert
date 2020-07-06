@@ -16,51 +16,24 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
-from enum import Enum
-
 from pmlib.filter.types import Rule
 
 __all__ = [
-    "Header"
+    "Age"
 ]
 
-
-class _Condition(Enum):
-
-    To = "T"
-    From = "F"
-    Cc = "C"
-    Subject = "S"
-    ReplyTo = "R"
-    Sender = "E"
-
-
-class _Compare(Enum):
-
-    Contains = "contains"
-    Is = "is"
-
-
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Headers...
+# Message age...
 
-#  If header "T" contains "ubuntu-security-announce@lists.ubuntu.com" Move "2Q76BD9H:22D9:FOL034E4"
+#  If age older than 50 Move "BNNW0F27:6321:FOL04467"
+#  If age absolute older than 280501000000 Move "BNNW0F27:6321:FOL04467"
 
-#  T: To
-#  F: From
-#  C: Cc
-#  S: Subject
-#  R: Reply-to
-#  E: Sender
 
-#  contains
-#  is
-
-class Header(Rule):
+class Age(Rule):
 
     def __init__(self):
         Rule.__init__(self)
-        self.name = "Headers..."
+        self.name = "Message age..."
         return
 
     def parse(self, data: str) -> bool:

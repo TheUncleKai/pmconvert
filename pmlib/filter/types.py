@@ -17,17 +17,11 @@
 #
 import abc
 from abc import ABCMeta
-from enum import Enum
 
-
-class HeaderCondition(Enum):
-
-    To = "T"
-    From = "F"
-    Cc = "C"
-    Subject = "S"
-    ReplyTo = "R"
-    Sender = "E"
+__all__ = [
+    "Action",
+    "Rule"
+]
 
 
 class Action(metaclass=ABCMeta):
