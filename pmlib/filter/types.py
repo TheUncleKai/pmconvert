@@ -19,7 +19,10 @@ import abc
 
 from typing import Union
 from abc import ABCMeta
-from dataclasses import dataclass, field
+
+from typing import List
+
+from bbutil.utils import get_attribute
 
 __all__ = [
     "Action",
@@ -46,12 +49,24 @@ class Action(metaclass=ABCMeta):
         pass
 
 
-@dataclass(init=True)
-class _Data(object):
+class _Actions(object):
 
-    line: str = ""
-    trigger: str = ""
-    action: str = ""
+    def __init__(self):
+        self.modules: list = []
+
+        for _item in __all__:
+            path = "pmlib.filter.action.{0:s}".format(_item)
+            input_list = get_attribute(path, "__all__")
+            self._get_list(path, input_list)
+        return
+
+    def _get_list(self, path: str, input_list: List[str]):
+
+        for _item in input_list:
+            path = "pmlib.filter.action.{0:s}".format(path)
+            attr = get_attribute(path, _item)
+            self.modules.append(attr)
+        return
 
 
 class Rule(metaclass=ABCMeta):
@@ -59,7 +74,16 @@ class Rule(metaclass=ABCMeta):
     def __init__(self, name: str):
         self.name: str = name
         self.action: Union[Action, None] = None
-        self.data: _Data = _Data()
+        return
+
+    def set_action(self, data: str) -> Union[Action, None]:
+        actions = _Actions()
+
+        for _item in actions.modules:
+            check = _item.parse(data)
+            if check is True:
+                self.action = _item
+                return
         return
 
     @abc.abstractmethod

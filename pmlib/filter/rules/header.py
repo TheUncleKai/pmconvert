@@ -16,8 +16,12 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+import re
+
+from typing import Union
 from enum import Enum
 
+from pmlib.types import Folder
 from pmlib.filter.types import Rule
 
 __all__ = [
@@ -59,9 +63,13 @@ class _Compare(Enum):
 class Header(Rule):
 
     def __init__(self):
-        Rule.__init__(self)
-        self.name = "Headers..."
-        self.rule = "header"
+        Rule.__init__(self, "Headers...")
+        self._pattern = re.compile(
+            "If header \"(?P<Header>[TFCSRE]+)\" (?P<Type>contains|is) \"(?P<Filter>.+)\" (?P<Action>.+)")
+
+        self.header: Union[_Condition, None] = None
+        self.type: Union[_Compare, None] = None
+        self.filter: str = ""
         return
 
     def parse(self, data: str) -> bool:
