@@ -17,16 +17,14 @@
 #
 
 
-from typing import Union
-
 from pmlib.filter.types import Action
-from pmlib.types import Folder
 
 __all__ = [
     "Append",
     "Delete",
     "Extract",
-    "Forward"
+    "Forward",
+    "AddHeader"
 ]
 
 
@@ -94,4 +92,21 @@ class Append(Action):
 
     def result(self) -> str:
         text = "Append data to {0:s}".format(self.target)
+        return text
+
+
+class AddHeader(Action):
+
+    def __init__(self):
+        Action.__init__(self)
+        self.name = "AddHeader"
+        self.filter = "AddHeader"
+        self.target: str = ""
+        return
+
+    def parse(self, data: str) -> bool:
+        return True
+
+    def result(self) -> str:
+        text = "Add header {0:s}".format(self.target)
         return text

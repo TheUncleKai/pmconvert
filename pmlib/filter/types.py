@@ -28,28 +28,13 @@ class RuleType(Enum):
     Date = "date"
     Age = "age"
 
-
-#     Print = "Print"
-#     SendTextFile = "SendTextFile"
-#     SendBinaryFile = "SendBinaryFile"
-#     AddToList = "AddToList"
-#     RemoveFromList = "RemoveFromList"
-#     RunAProgram = "Run"
-#     Highlight = "Highlight"
-#     Expire = "Expire"
-#     Select = "Select"
 #     Exit = "Exit"
-#     MarkRead = "MarkRead"
-#     PlaySound = "PlaySound"
 #     CallLabel = "Call"
 #     Return = "Return"
 #     GotoLabel = "Goto"
 #     SkipNext = "SkipNext"
-#     Dialog = "Dialog"
-#     SetIdentity = "SetIdentity"
 #     LogicalAnd = "LogicalAnd"
-#     MarkSignificant = "MarkSignificant"
-#     AddHeader = "AddHeader"
+
 
 
 class Action(metaclass=ABCMeta):
