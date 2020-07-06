@@ -20,5 +20,6 @@
 __all__ = [
     "event",
     "folder",
-    "mail"
+    "mail",
+    "rule"
 ]

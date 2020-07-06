@@ -20,21 +20,14 @@ from abc import ABCMeta
 from enum import Enum
 
 
-class RuleType(Enum):
+class HeaderCondition(Enum):
 
-    Header = "header"
-    Expression = "expression"
-    Size = "size"
-    Date = "date"
-    Age = "age"
-
-#     Exit = "Exit"
-#     CallLabel = "Call"
-#     Return = "Return"
-#     GotoLabel = "Goto"
-#     SkipNext = "SkipNext"
-#     LogicalAnd = "LogicalAnd"
-
+    To = "T"
+    From = "F"
+    Cc = "C"
+    Subject = "S"
+    ReplyTo = "R"
+    Sender = "E"
 
 
 class Action(metaclass=ABCMeta):
