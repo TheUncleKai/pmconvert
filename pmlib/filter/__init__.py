@@ -16,8 +16,8 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
-
-class Filter(object):
-
-    def __init__(self):
-        return
+__all__ = [
+    "action",
+    "rules",
+    "types"
+]
