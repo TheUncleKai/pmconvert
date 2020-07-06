@@ -18,6 +18,7 @@
 
 __all__ = [
     "convert",
+    "filter",
     "report",
 
     "conf",
