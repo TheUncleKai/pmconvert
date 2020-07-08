@@ -55,8 +55,12 @@ class _Condition(Enum):
 
 class Header(Rule):
 
+    def __repr__(self):
+        text = "{0:s}: {1:s} {2:s}".format(str(self.action), self.type, self.filter)
+        return text
+
     def __init__(self):
-        Rule.__init__(self, "Headers...")
+        Rule.__init__(self, "Headers")
         self._pattern = re.compile(
             "If header \"(?P<Header>[TFCSRE]+)\" (?P<Type>contains|is) \"(?P<Filter>.+)\" (?P<Action>.+)")
 

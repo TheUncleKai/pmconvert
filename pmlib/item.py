@@ -18,7 +18,7 @@
 
 import os
 import re
-from typing import List
+from typing import List, Union
 
 import pmlib
 
@@ -96,6 +96,7 @@ class Item(EntryData):
         self.children = []
         self.mails = []
         self.symbols = []
+        self.rules = []
         self.navigation = Navigation()
         self.type = get_entry_type(int(m.group("Type")))
         self.name = str(m.group("Name"))
@@ -202,6 +203,26 @@ class Item(EntryData):
         self.target = self._set_target(pmlib.config.target_path, "", self)
         self.full_name = self._set_full_name("", self)
         return
+
+    def _search(self, item: EntryData, name: str) -> Union[EntryData, None]:
+
+        for _item in item.children:
+            if _item.id == name:
+                return _item
+
+            ret = self._search(_item, name)
+            if ret is not None:
+                return ret
+
+        return None
+
+    def search(self, name: str) -> Union[EntryData, None]:
+
+        if self.id == name:
+            return self
+
+        ret = self._search(self, name)
+        return ret
 
 
 def sort_items(item: Item):

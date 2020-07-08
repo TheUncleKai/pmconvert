@@ -38,6 +38,7 @@ class Action(metaclass=ABCMeta):
     def __init__(self):
         self.name: str = ""
         self.filter: str = ""
+        self.rule = None
         return
 
     @abc.abstractmethod
@@ -86,6 +87,7 @@ class Rule(metaclass=ABCMeta):
 
         for attr in actions.modules:
             _item = attr()
+            _item.rule = self
             check = _item.parse(data)
             if check is True:
                 self.action = _item

@@ -20,6 +20,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Match, Union, List, Any
 
+from pmlib.filter.types import Rule
+
 __all__ = [
     "Entry",
     "Source",
@@ -156,6 +158,7 @@ class EntryData(object):
     size: int = 0
     mail_count: int = 0
     children: List[Any] = field(default_factory=list)
+    rules: List[Rule] = field(default_factory=list)
     target: str = ""
     full_name: str = ""
     parent: Any = None
