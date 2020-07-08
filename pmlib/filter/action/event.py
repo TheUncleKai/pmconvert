@@ -42,7 +42,7 @@ class Print(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Print mail"
@@ -59,7 +59,7 @@ class Highlight(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Set message color {0:d}".format(self.parameter)
@@ -75,7 +75,7 @@ class MarkRead(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Mark mail read"
@@ -92,7 +92,7 @@ class PlaySound(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Play sound {0:s}".format(self.parameter)
@@ -109,7 +109,7 @@ class Dialog(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Show dialog {0:s}".format(self.parameter)
@@ -125,7 +125,7 @@ class Select(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Select mail"
@@ -142,7 +142,7 @@ class Run(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Run program {0:s}".format(self.parameter)
@@ -159,7 +159,7 @@ class SendTextFile(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Send text {0:s}".format(self.parameter)
@@ -176,7 +176,7 @@ class SendBinaryFile(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Send binary {0:s}".format(self.parameter)
@@ -193,7 +193,7 @@ class AddToList(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Add user to list {0:s}".format(self.parameter)
@@ -210,7 +210,7 @@ class RemoveFromList(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Remove user from list {0:s}".format(self.parameter)
@@ -227,7 +227,7 @@ class SetIdentity(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Set identity {0:s}".format(self.parameter)
@@ -243,7 +243,7 @@ class Expire(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Expire"
@@ -259,7 +259,7 @@ class MarkSignificant(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Mark mail as significant"

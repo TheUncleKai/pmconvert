@@ -54,7 +54,9 @@ class _Actions(object):
     def __init__(self):
         self.modules: list = []
 
-        for _item in __all__:
+        import pmlib.filter.action
+
+        for _item in pmlib.filter.action.__all__:
             path = "pmlib.filter.action.{0:s}".format(_item)
             input_list = get_attribute(path, "__all__")
             self._get_list(path, input_list)
@@ -63,13 +65,15 @@ class _Actions(object):
     def _get_list(self, path: str, input_list: List[str]):
 
         for _item in input_list:
-            path = "pmlib.filter.action.{0:s}".format(path)
             attr = get_attribute(path, _item)
             self.modules.append(attr)
         return
 
 
 class Rule(metaclass=ABCMeta):
+
+    def __repr__(self):
+        return self.name
 
     def __init__(self, name: str):
         self.name: str = name
@@ -80,7 +84,8 @@ class Rule(metaclass=ABCMeta):
     def set_action(self, data: str) -> Union[Action, None]:
         actions = _Actions()
 
-        for _item in actions.modules:
+        for attr in actions.modules:
+            _item = attr()
             check = _item.parse(data)
             if check is True:
                 self.action = _item
