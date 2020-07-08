@@ -37,7 +37,7 @@ class Exit(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Exit rule set"
@@ -54,7 +54,7 @@ class Call(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Call label {0:s}".format(self.parameter)
@@ -71,7 +71,7 @@ class Goto(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Goto label {0:s}".format(self.parameter)
@@ -87,7 +87,7 @@ class Return(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Return from call"
@@ -103,7 +103,7 @@ class SkipNext(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Skip next rule"
@@ -119,7 +119,7 @@ class LogicalAnd(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Logical and next rule"

@@ -37,7 +37,7 @@ class Copy(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Copy to {0:s}".format(self.folder.name)
@@ -54,7 +54,7 @@ class Move(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Move to {0:s}".format(self.folder.name)

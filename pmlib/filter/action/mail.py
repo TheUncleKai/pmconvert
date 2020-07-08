@@ -37,7 +37,7 @@ class Delete(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Delete mail"
@@ -54,7 +54,7 @@ class Forward(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Forward mail to {0:s}".format(self.target)
@@ -71,7 +71,7 @@ class Extract(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Extract data to {0:s}".format(self.target)
@@ -88,7 +88,7 @@ class Append(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Append data to {0:s}".format(self.target)
@@ -105,7 +105,7 @@ class AddHeader(Action):
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False
 
     def result(self) -> str:
         text = "Add header {0:s}".format(self.target)
