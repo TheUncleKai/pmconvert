@@ -23,6 +23,7 @@ __all__ = [
 
     "conf",
     "console",
+    "glob",
     "hierachy",
     "item",
     "types",
@@ -79,7 +80,7 @@ __maintainer__ = __author__
 
 from bbutil.logging import Logging
 from pmlib.conf import Config
-from pmlib.item import Data
+from pmlib.glob import Data
 from pmlib.convert import Manager
 
 log: Logging = Logging()

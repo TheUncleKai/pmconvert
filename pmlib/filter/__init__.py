@@ -16,8 +16,77 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+import os
+
+from typing import List
+
+from bbutil.utils import get_attribute
+
+import pmlib
+
+from pmlib.filter.types import Rule
+
+
 __all__ = [
     "action",
     "rules",
-    "types"
+    "types",
+
+    "Filter"
 ]
+
+
+class _Rules(object):
+
+    def __init__(self):
+        self.modules: list = []
+
+        import pmlib.filter.rules
+
+        for _item in pmlib.filter.rules.__all__:
+            path = "pmlib.filter.rules.{0:s}".format(_item)
+            class_list = get_attribute(path, "__all__")
+
+            for _class in class_list:
+                attr = get_attribute(path, _class)
+                self.modules.append(attr)
+        return
+
+
+class Filter(object):
+
+    def __init__(self):
+        self.rules: List[Rule] = []
+        return
+
+    @property
+    def count(self) -> int:
+        return len(self.rules)
+
+    def parse(self, filename: str) -> bool:
+
+        _rules = _Rules()
+        path = os.path.abspath(os.path.normpath("{0:s}/{1:s}").format(pmlib.config.pegasus_path, filename))
+
+        if os.path.exists(path) is False:
+            pmlib.log.error("Filter not found: {0:s}".format(filename))
+            return False
+
+        try:
+            f = open(path, "r")
+        except OSError as e:
+            pmlib.log.exception(e)
+            return False
+
+        for line in f:
+            for attr in _rules.modules:
+                rule: Rule = attr()
+
+                check = rule.parse(line)
+                if check is True:
+                    rule.filename = path
+                    self.rules.append(rule)
+                    break
+
+        f.close()
+        return True

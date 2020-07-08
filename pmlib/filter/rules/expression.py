@@ -42,10 +42,8 @@ class _ExpressionType(Enum):
 class Expression(Rule):
 
     def __init__(self):
-        Rule.__init__(self)
-        self.name = "Expression..."
-        self.rule = "expression"
+        Rule.__init__(self, "Expression...")
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False

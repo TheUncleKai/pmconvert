@@ -33,10 +33,8 @@ __all__ = [
 class Date(Rule):
 
     def __init__(self):
-        Rule.__init__(self)
-        self.name = "Message date..."
-        self.rule = "date"
+        Rule.__init__(self, "Message date...")
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False

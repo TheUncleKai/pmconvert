@@ -31,11 +31,9 @@ __all__ = [
 class Label(Rule):
 
     def __init__(self):
-        Rule.__init__(self)
-        self.name = "Label"
-        self.rule = "Label"
+        Rule.__init__(self, "Label")
         self.condition = False
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False

@@ -32,9 +32,8 @@ __all__ = [
 class Size(Rule):
 
     def __init__(self):
-        Rule.__init__(self)
-        self.name = "Message size..."
+        Rule.__init__(self, "Message size...")
         return
 
     def parse(self, data: str) -> bool:
-        return True
+        return False

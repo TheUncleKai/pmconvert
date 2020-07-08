@@ -73,6 +73,7 @@ class Rule(metaclass=ABCMeta):
 
     def __init__(self, name: str):
         self.name: str = name
+        self.filename: str = ""
         self.action: Union[Action, None] = None
         return
 

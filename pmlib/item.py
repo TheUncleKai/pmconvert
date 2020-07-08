@@ -19,7 +19,6 @@
 import os
 import re
 from typing import List
-from dataclasses import dataclass, field
 
 import pmlib
 
@@ -34,8 +33,7 @@ _folder = re.compile("(?P<ID>.+):(?P<Folder>.+):(?P<Name>.+)")
 
 __all__ = [
     "Item",
-    "sort_items",
-    "Data"
+    "sort_items"
 ]
 
 
@@ -208,11 +206,3 @@ class Item(EntryData):
 
 def sort_items(item: Item):
     return item.name
-
-
-@dataclass()
-class Data(object):
-
-    level: int = 0
-    entries: List[Item] = field(default_factory=list)
-    root: Item = field(default=None)

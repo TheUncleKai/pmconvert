@@ -15,24 +15,21 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
+from dataclasses import dataclass, field
+from typing import List
 
-from pmlib.filter.types import Rule
+from pmlib.item import Item
+from pmlib.filter import Filter
 
 __all__ = [
-    "Always"
+    "Data"
 ]
 
-# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Always
 
-# Always MarkRead ""
+@dataclass()
+class Data(object):
 
-
-class Always(Rule):
-
-    def __init__(self):
-        Rule.__init__(self, "Always")
-        return
-
-    def parse(self, data: str) -> bool:
-        return False
+    level: int = 0
+    entries: List[Item] = field(default_factory=list)
+    root: Item = field(default=None)
+    filter: Filter = field(default_factory=Filter)

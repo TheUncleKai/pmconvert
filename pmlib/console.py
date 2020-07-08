@@ -26,6 +26,11 @@ from pmlib.hierachy import Hierarchy
 from pmlib.utils import create_folder
 from pmlib.report import Report
 
+_filter = [
+    "WINRULEA.PMC",
+    "WINRULES.PMC"
+]
+
 
 class Console(object):
 
@@ -77,6 +82,13 @@ class Console(object):
             return False
 
         hierarchy.sort()
+
+        for _item in _filter:
+            check = pmlib.data.filter.parse(_item)
+            if check is False:
+                return False
+
+        lfilter = pmlib.data.filter
 
         item = pmlib.data.root
 

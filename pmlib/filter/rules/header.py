@@ -18,10 +18,9 @@
 
 import re
 
-from typing import Union
+from typing import List
 from enum import Enum
 
-from pmlib.types import Folder
 from pmlib.filter.types import Rule
 
 __all__ = [
@@ -38,13 +37,6 @@ class _Condition(Enum):
     ReplyTo = "R"
     Sender = "E"
 
-
-class _Compare(Enum):
-
-    Contains = "contains"
-    Is = "is"
-
-
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # Headers...
 
@@ -60,6 +52,7 @@ class _Compare(Enum):
 #  contains
 #  is
 
+
 class Header(Rule):
 
     def __init__(self):
@@ -67,10 +60,26 @@ class Header(Rule):
         self._pattern = re.compile(
             "If header \"(?P<Header>[TFCSRE]+)\" (?P<Type>contains|is) \"(?P<Filter>.+)\" (?P<Action>.+)")
 
-        self.header: Union[_Condition, None] = None
-        self.type: Union[_Compare, None] = None
+        self.header: List[_Condition] = []
+        self.type: str = ""
         self.filter: str = ""
         return
 
     def parse(self, data: str) -> bool:
+        m = self._pattern.search(data)
+        if m is None:
+            return False
+
+        _header = m.group('Header')
+        _action = m.group('Action')
+
+        self.type = m.group('Type')
+        self.filter = m.group('Filter')
+
+        for _char in _header:
+            for condition in _Condition:
+                if condition.value == _char:
+                    self.header.append(condition)
+
+        self.set_action(_action)
         return True
