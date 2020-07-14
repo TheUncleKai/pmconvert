@@ -1,0 +1,9 @@
+@echo off
+echo Create virtualenv...
+virtualenv --prompt "(pmconvert) " .venv
+
+echo Activate virtualenv...
+call .venv\Scripts\activate
+
+echo Install requirements...
+pip install -r requirements.txt
