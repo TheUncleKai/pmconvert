@@ -16,6 +16,8 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+import re
+
 from pmlib.filter.types import Rule
 
 __all__ = [
@@ -31,9 +33,29 @@ __all__ = [
 
 class Size(Rule):
 
+    def __repr__(self):
+        text = "{0:s}: If {1:s} {2:d} bytes".format(str(self.action), self.type, self.size)
+        return text
+
     def __init__(self):
         Rule.__init__(self, "Message size...")
+
+        self._pattern = re.compile(
+            "If size (?P<Type>[<>]) (?P<Size>[0-9]+) (?P<Action>.+)")
+
+        self.type: str = ""
+        self.size: int = 0
         return
 
     def parse(self, data: str) -> bool:
-        return False
+
+        m = self._pattern.search(data)
+        if m is None:
+            return False
+
+        _action = m.group('Action')
+
+        self.type = m.group('Type')
+        self.size = int(m.group('Size'))
+        self.set_action(_action)
+        return True
