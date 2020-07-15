@@ -16,7 +16,12 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+import re
+
 from pmlib.filter.types import Rule
+from typing import Union
+
+from datetime import datetime
 
 __all__ = [
     "Age"
@@ -27,13 +32,52 @@ __all__ = [
 
 #  If age older than 50 Move "BNNW0F27:6321:FOL04467"
 #  If age absolute older than 280501000000 Move "BNNW0F27:6321:FOL04467"
+#  If age absolute older than 011212112233 Move "49ZTFXJP:12B4:FOL069F6"
+#  01 12 12 11 22 33
 
 
 class Age(Rule):
 
+    def __repr__(self):
+        if self.days > 0:
+            text = "{0:s}: If older than {1:d} days".format(str(self.action), self.days)
+        else:
+            text = "{0:s}: If older than {1:s}".format(str(self.action), str(self.time))
+        return text
+
     def __init__(self):
         Rule.__init__(self, "Message age...")
+
+        self._pattern1 = re.compile(
+            "If age older than (?P<Days>[0-9]+) (?P<Action>.+)")
+
+        self._pattern2 = re.compile(
+            "If age absolute older than (?P<YY>[0-9][0-9])(?P<MM>[0-9][0-9])(?P<DD>[0-9][0-9])(?P<hh>[0-9][0-9])(?P<mm>[0-9][0-9])(?P<ss>[0-9][0-9]) (?P<Action>.+)")
+
+        self.days: int = -1
+        self.time: Union[None, datetime] = None
         return
 
     def parse(self, data: str) -> bool:
+
+        m = self._pattern1.search(data)
+        if m is not None:
+            _action = m.group('Action')
+            self.days = int(m.group('Days'))
+            self.set_action(m.group('Action'))
+            return True
+
+        m = self._pattern2.search(data)
+        if m is not None:
+            year = int(m.group('YY'))
+            month = int(m.group('MM'))
+            day = int(m.group('DD'))
+            hour = int(m.group('hh'))
+            minute = int(m.group('mm'))
+            seconds = int(m.group('ss'))
+
+            self.time = datetime(year, month, day, hour, minute, seconds)
+            self.set_action(m.group('Action'))
+            return True
+
         return False
