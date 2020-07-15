@@ -41,10 +41,30 @@ class Copy(Action):
         self.name = "Copy"
         self.filter = "Copy"
         self.folder: Union[Folder, None] = None
+
+        self._pattern = re.compile("Copy \"(?P<Folder>.+)\"")
         return
 
     def parse(self, data: str) -> bool:
-        return False
+        m = self._pattern.search(data)
+        if m is None:
+            return False
+
+        folder = m.group('Folder')
+
+        m = _folder.search(folder)
+        if m is None:
+            return False
+
+        _id = m.group('ID')
+
+        self.folder = pmlib.data.root.search(_id)
+
+        if self.folder is None:
+            return False
+
+        self.folder.rules.append(self.rule)
+        return True
 
     def result(self) -> str:
         text = "Copy to {0:s}".format(self.folder.name)

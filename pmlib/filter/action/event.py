@@ -15,6 +15,9 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
+
+import re
+
 from pmlib.filter.types import Action
 
 __all__ = [
@@ -72,9 +75,15 @@ class MarkRead(Action):
         Action.__init__(self)
         self.name = "MarkRead"
         self.filter = "MarkRead"
+
+        self._pattern = re.compile("MarkRead \"\"")
         return
 
     def parse(self, data: str) -> bool:
+        m = self._pattern.search(data)
+        if m is None:
+            return False
+
         return False
 
     def result(self) -> str:

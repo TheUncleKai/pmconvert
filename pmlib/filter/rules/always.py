@@ -16,6 +16,8 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+import re
+
 from pmlib.filter.types import Rule
 
 __all__ = [
@@ -30,9 +32,22 @@ __all__ = [
 
 class Always(Rule):
 
+    def __repr__(self):
+        text = "{0:s}: Always".format(str(self.action))
+        return text
+
     def __init__(self):
         Rule.__init__(self, "Always")
+
+        self._pattern = re.compile(
+            "Always (?P<Action>.+)")
         return
 
     def parse(self, data: str) -> bool:
-        return False
+        m = self._pattern.search(data)
+        if m is None:
+            return False
+
+        _action = m.group('Action')
+        self.set_action(_action)
+        return True

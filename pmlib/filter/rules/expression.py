@@ -16,6 +16,8 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+import re
+
 from enum import Enum
 
 from pmlib.filter.types import Rule
@@ -27,6 +29,7 @@ __all__ = [
 
 class _ExpressionType(Enum):
 
+    unknown = "unknown"
     headers = "headers"
     body = "body"
     both = "both"
@@ -41,9 +44,36 @@ class _ExpressionType(Enum):
 
 class Expression(Rule):
 
+    def __repr__(self):
+        text = "{0:s}: {1:s} matches {2:s}".format(str(self.action), self.type.value, self.expression)
+        return text
+
     def __init__(self):
         Rule.__init__(self, "Expression...")
+
+        self._pattern = re.compile(
+            "If expression (?P<Type>headers|body|both) matches \"(?P<Filter>.+)\" (?P<Action>.+)")
+
+        self.expression: str = ""
+        self.type: _ExpressionType = _ExpressionType.unknown
         return
 
     def parse(self, data: str) -> bool:
-        return False
+        m = self._pattern.search(data)
+        if m is None:
+            return False
+
+        _type = m.group('Type')
+        _filter = m.group('Filter')
+        _action = m.group('Action')
+
+        for _expression in _ExpressionType:
+            if _expression.value == _type:
+                self.type = _expression
+
+        if self.type is _ExpressionType.unknown:
+            return False
+
+        self.expression = _filter
+        self.set_action(_action)
+        return True
