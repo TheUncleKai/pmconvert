@@ -19,7 +19,7 @@
 import re
 
 from pmlib.filter.types import Rule
-from typing import Union
+from typing import Union, Pattern
 
 from datetime import datetime
 
@@ -52,7 +52,9 @@ class Age(Rule):
             "If age older than (?P<Days>[0-9]+) (?P<Action>.+)")
 
         self._pattern2 = re.compile(
-            "If age absolute older than (?P<YY>[0-9][0-9])(?P<MM>[0-9][0-9])(?P<DD>[0-9][0-9])(?P<hh>[0-9][0-9])(?P<mm>[0-9][0-9])(?P<ss>[0-9][0-9]) (?P<Action>.+)")
+            "If age absolute older than (?P<Date>[0-9]+) (?P<Action>.+)")
+
+        self._date: Pattern = re.compile("(?P<YY>[0-9][0-9])(?P<MM>[0-9][0-9])(?P<DD>[0-9][0-9])(?P<hh>[0-9][0-9])(?P<mm>[0-9][0-9])(?P<ss>[0-9][0-9])")
 
         self.days: int = -1
         self.time: Union[None, datetime] = None
@@ -69,12 +71,17 @@ class Age(Rule):
 
         m = self._pattern2.search(data)
         if m is not None:
-            year = int(m.group('YY'))
-            month = int(m.group('MM'))
-            day = int(m.group('DD'))
-            hour = int(m.group('hh'))
-            minute = int(m.group('mm'))
-            seconds = int(m.group('ss'))
+
+            d = self._date.search(m.group('Date'))
+            if d is None:
+                return False
+
+            year = int(d.group('YY'))
+            month = int(d.group('MM'))
+            day = int(d.group('DD'))
+            hour = int(d.group('hh'))
+            minute = int(d.group('mm'))
+            seconds = int(d.group('ss'))
 
             self.time = datetime(year, month, day, hour, minute, seconds)
             self.set_action(m.group('Action'))

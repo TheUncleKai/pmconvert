@@ -18,7 +18,7 @@
 
 import os
 
-from typing import List
+from typing import List, Union
 
 from bbutil.utils import get_attribute
 
@@ -78,7 +78,15 @@ class Filter(object):
             pmlib.log.exception(e)
             return False
 
+        follow_rule: Union[None, Rule] = None
+
         for line in f:
+            if follow_rule is not None:
+                check = follow_rule.parse(line)
+                follow_rule = None
+                if check is True:
+                    continue
+
             for attr in _rules.modules:
                 rule: Rule = attr()
 
@@ -86,6 +94,9 @@ class Filter(object):
                 if check is True:
                     rule.filename = path
                     self.rules.append(rule)
+
+                    if rule.follow_line is True:
+                        follow_rule = rule
                     break
 
         f.close()

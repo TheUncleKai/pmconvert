@@ -77,6 +77,7 @@ class Rule(metaclass=ABCMeta):
         return self.name
 
     def __init__(self, name: str):
+        self.follow_line: bool = False
         self.name: str = name
         self.filename: str = ""
         self.action: Union[Action, None] = None
