@@ -32,6 +32,7 @@ class Config(object):
     pegasus_root: str = ""
     target_type: Target = Target.unknown
     target_path: str = ""
+    no_convert: bool = False
 
     def parse(self, options) -> bool:
 
@@ -45,6 +46,7 @@ class Config(object):
 
         self.pegasus_root = options.root
         self.pegasus_path = options.folder
+        self.no_convert = options.noconvert
 
         if options.target == "":
             pmlib.log.error("Need to give target path!")

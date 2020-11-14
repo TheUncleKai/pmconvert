@@ -51,6 +51,9 @@ class Console(object):
 
         self.parser.add_option("-t", "--target", help="target path for export", type="string", metavar="<FOLDER>",
                                default="")
+
+        self.parser.add_option("-n", "--noconvert", help="target path for export", action="store_true",
+                               default=False)
         return
 
     def prepare(self) -> bool:
@@ -97,6 +100,9 @@ class Console(object):
             text = "Unable to find converter with type {0:s}".format(pmlib.config.target_type.name)
             pmlib.log.warn("Mailbox", text)
             return False
+
+        if config.no_convert is True:
+            return True
 
         check = target.prepare(item)
         if check is False:
