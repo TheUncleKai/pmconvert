@@ -18,55 +18,44 @@
 
 import re
 
-from typing import List
 from enum import Enum
 
 from pmlib.filter.types import Rule
 
 __all__ = [
-    "Header"
+    "Expression"
 ]
 
 
-class _Condition(Enum):
+class _ExpressionType(Enum):
 
-    To = "T"
-    From = "F"
-    Cc = "C"
-    Subject = "S"
-    ReplyTo = "R"
-    Sender = "E"
+    unknown = "unknown"
+    headers = "headers"
+    body = "body"
+    both = "both"
 
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Headers...
+# Expression...
 
-#  If header "T" contains "ubuntu-security-announce@lists.ubuntu.com" Move "2Q76BD9H:22D9:FOL034E4"
-
-#  T: To
-#  F: From
-#  C: Cc
-#  S: Subject
-#  R: Reply-to
-#  E: Sender
-
-#  contains
-#  is
+#  If expression headers matches "From: <tech@kpslashhaven.net>" Move "YZDNYMAS:3D5D:FOL00816"
+#  If expression body matches "Return-path: <do-not-reply@archiveofourown.org>" Move "MDJIPSSK:0830:FOL00B44"
+#  If expression both matches "Return-path: <do-not-reply@archiveofourown.org>" Move "MDJIPSSK:0830:FOL00B44"
 
 
-class Header(Rule):
+class Expression(Rule):
 
     def __repr__(self):
-        text = "{0:s}: {1:s} {2:s}".format(str(self.action), self.type, self.filter)
+        text = "{0:s}: {1:s} matches {2:s}".format(str(self.action), self.type.value, self.expression)
         return text
 
     def __init__(self):
-        Rule.__init__(self, "Headers")
-        self._pattern = re.compile(
-            "If header \"(?P<Header>[TFCSRE]+)\" (?P<Type>contains|is) \"(?P<Filter>.+)\" (?P<Action>.+)")
+        Rule.__init__(self, "Expression...")
 
-        self.header: List[_Condition] = []
-        self.type: str = ""
-        self.filter: str = ""
+        self._pattern = re.compile(
+            "If expression (?P<Type>headers|body|both) matches \"(?P<Filter>.+)\" (?P<Action>.+)")
+
+        self.expression: str = ""
+        self.type: _ExpressionType = _ExpressionType.unknown
         return
 
     def parse(self, data: str) -> bool:
@@ -74,16 +63,17 @@ class Header(Rule):
         if m is None:
             return False
 
-        _header = m.group('Header')
+        _type = m.group('Type')
+        _filter = m.group('Filter')
         _action = m.group('Action')
 
-        self.type = m.group('Type')
-        self.filter = m.group('Filter')
+        for _expression in _ExpressionType:
+            if _expression.value == _type:
+                self.type = _expression
 
-        for _char in _header:
-            for condition in _Condition:
-                if condition.value == _char:
-                    self.header.append(condition)
+        if self.type is _ExpressionType.unknown:
+            return False
 
+        self.expression = _filter
         self.set_action(_action)
         return True

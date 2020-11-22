@@ -16,97 +16,111 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
-
 from pmlib.filter.types import Action
 
 __all__ = [
-    "Append",
-    "Delete",
-    "Extract",
-    "Forward",
-    "AddHeader"
+    "Exit",
+    "Call",
+    "Goto",
+    "Return",
+    "SkipNext",
+    "LogicalAnd"
 ]
 
 
-class Delete(Action):
+class Exit(Action):
 
     def __init__(self):
         Action.__init__(self)
-        self.name = "Delete"
-        self.filter = "Delete"
+        self.name = "Exit"
+        self.filter = "Exit"
         return
 
     def parse(self, data: str) -> bool:
         return False
 
     def result(self) -> str:
-        text = "Delete mail"
+        text = "Exit rule set"
         return text
 
 
-class Forward(Action):
+class Call(Action):
 
     def __init__(self):
         Action.__init__(self)
-        self.name = "Forward"
-        self.filter = "Forward"
-        self.target: str = ""
+        self.name = "Call"
+        self.filter = "Call"
+        self.parameter: str = ""
         return
 
     def parse(self, data: str) -> bool:
         return False
 
     def result(self) -> str:
-        text = "Forward mail to {0:s}".format(self.target)
+        text = "Call label {0:s}".format(self.parameter)
         return text
 
 
-class Extract(Action):
+class Goto(Action):
 
     def __init__(self):
         Action.__init__(self)
-        self.name = "Extract"
-        self.filter = "eXtract"
-        self.target: str = ""
+        self.name = "Goto"
+        self.filter = "Goto"
+        self.parameter: str = ""
         return
 
     def parse(self, data: str) -> bool:
         return False
 
     def result(self) -> str:
-        text = "Extract data to {0:s}".format(self.target)
+        text = "Goto label {0:s}".format(self.parameter)
         return text
 
 
-class Append(Action):
+class Return(Action):
 
     def __init__(self):
         Action.__init__(self)
-        self.name = "Append"
-        self.filter = "Append"
-        self.target: str = ""
+        self.name = "Return"
+        self.filter = "Return"
         return
 
     def parse(self, data: str) -> bool:
         return False
 
     def result(self) -> str:
-        text = "Append data to {0:s}".format(self.target)
+        text = "Return from call"
         return text
 
 
-class AddHeader(Action):
+class SkipNext(Action):
 
     def __init__(self):
         Action.__init__(self)
-        self.name = "AddHeader"
-        self.filter = "AddHeader"
-        self.target: str = ""
+        self.name = "SkipNext"
+        self.filter = "SkipNext"
         return
 
     def parse(self, data: str) -> bool:
         return False
 
     def result(self) -> str:
-        text = "Add header {0:s}".format(self.target)
+        text = "Skip next rule"
+        return text
+
+
+class LogicalAnd(Action):
+
+    def __init__(self):
+        Action.__init__(self)
+        self.name = "LogicalAnd"
+        self.filter = "LogicalAnd"
+        return
+
+    def parse(self, data: str) -> bool:
+        return False
+
+    def result(self) -> str:
+        text = "Logical and next rule"
         return text

@@ -164,6 +164,7 @@ class ReportHTML(Reporter):
                 line("th", "Count", klass="heading")
                 line("th", "Success", klass="heading")
                 line("th", "Failure", klass="heading")
+                line("th", "Filter", klass="heading")
 
             for _item in self.entries:
                 if _item.valid is False:
@@ -171,6 +172,21 @@ class ReportHTML(Reporter):
                 tr = tag("tr")
                 self._create_item(tr, _item)
         return
+
+    @staticmethod
+    def _create_filter(item: Item) -> str:
+        _filter = ""
+
+        n = 0
+        for _rule in item.rules:
+            line = str(_rule)
+
+            if n == 0:
+                _filter = line
+            else:
+                _filter = "{0:s}\n{1:s}".format(_filter, line)
+
+        return _filter
 
     def _create_item(self, tr, item: Item):
         doc, tag, text, line = self.tuple
@@ -187,10 +203,10 @@ class ReportHTML(Reporter):
             colspan = max_len - len(item.symbols) + 1
 
             if item.type is Entry.tray:
-                colspan += 3
+                colspan += 4
 
             if item.type is Entry.mailbox:
-                colspan += 3
+                colspan += 4
 
             last = len(item.symbols) - 1
             n = 0
@@ -207,6 +223,7 @@ class ReportHTML(Reporter):
                 line("td", "{0:d}".format(item.report.count))
                 line("td", "{0:d}".format(item.report.success))
                 line("td", "{0:d}".format(item.report.failure))
+                line("td", self._create_filter(item))
         return
 
     def _sort_entries(self, item: Item):

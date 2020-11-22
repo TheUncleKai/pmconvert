@@ -16,40 +16,18 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 import abc
+
+from typing import Union
 from abc import ABCMeta
-from enum import Enum
 
+from typing import List
 
-class RuleType(Enum):
+from bbutil.utils import get_attribute
 
-    Header = "header"
-    Expression = "expression"
-    Size = "size"
-    Date = "date"
-    Age = "age"
-
-
-#     Print = "Print"
-#     SendTextFile = "SendTextFile"
-#     SendBinaryFile = "SendBinaryFile"
-#     AddToList = "AddToList"
-#     RemoveFromList = "RemoveFromList"
-#     RunAProgram = "Run"
-#     Highlight = "Highlight"
-#     Expire = "Expire"
-#     Select = "Select"
-#     Exit = "Exit"
-#     MarkRead = "MarkRead"
-#     PlaySound = "PlaySound"
-#     CallLabel = "Call"
-#     Return = "Return"
-#     GotoLabel = "Goto"
-#     SkipNext = "SkipNext"
-#     Dialog = "Dialog"
-#     SetIdentity = "SetIdentity"
-#     LogicalAnd = "LogicalAnd"
-#     MarkSignificant = "MarkSignificant"
-#     AddHeader = "AddHeader"
+__all__ = [
+    "Action",
+    "Rule"
+]
 
 
 class Action(metaclass=ABCMeta):
@@ -60,6 +38,7 @@ class Action(metaclass=ABCMeta):
     def __init__(self):
         self.name: str = ""
         self.filter: str = ""
+        self.rule = None
         return
 
     @abc.abstractmethod
@@ -71,10 +50,49 @@ class Action(metaclass=ABCMeta):
         pass
 
 
-class Rule(metaclass=ABCMeta):
+class _Actions(object):
 
     def __init__(self):
-        self.name: str = ""
+        self.modules: list = []
+
+        import pmlib.filter.action
+
+        for _item in pmlib.filter.action.__all__:
+            path = "pmlib.filter.action.{0:s}".format(_item)
+            input_list = get_attribute(path, "__all__")
+            self._get_list(path, input_list)
+        return
+
+    def _get_list(self, path: str, input_list: List[str]):
+
+        for _item in input_list:
+            attr = get_attribute(path, _item)
+            self.modules.append(attr)
+        return
+
+
+class Rule(metaclass=ABCMeta):
+
+    def __repr__(self):
+        return self.name
+
+    def __init__(self, name: str):
+        self.follow_line: bool = False
+        self.name: str = name
+        self.filename: str = ""
+        self.action: Union[Action, None] = None
+        return
+
+    def set_action(self, data: str) -> Union[Action, None]:
+        actions = _Actions()
+
+        for attr in actions.modules:
+            _item = attr()
+            _item.rule = self
+            check = _item.parse(data)
+            if check is True:
+                self.action = _item
+                return
         return
 
     @abc.abstractmethod

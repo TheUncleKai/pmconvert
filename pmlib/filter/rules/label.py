@@ -16,12 +16,24 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+from pmlib.filter.types import Rule
+
 __all__ = [
-    "age",
-    "always",
-    "expression",
-    "header",
-    "label",
-    "size",
-    "date"
+    "Label"
 ]
+
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Label
+
+#  Label "LABEK"
+
+
+class Label(Rule):
+
+    def __init__(self):
+        Rule.__init__(self, "Label")
+        self.condition = False
+        return
+
+    def parse(self, data: str) -> bool:
+        return False

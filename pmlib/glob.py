@@ -15,13 +15,21 @@
 #
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
+from dataclasses import dataclass, field
+from typing import List
+
+from pmlib.item import Item
+from pmlib.filter import Filter
 
 __all__ = [
-    "age",
-    "always",
-    "expression",
-    "header",
-    "label",
-    "size",
-    "date"
+    "Data"
 ]
+
+
+@dataclass()
+class Data(object):
+
+    level: int = 0
+    entries: List[Item] = field(default_factory=list)
+    root: Item = field(default=None)
+    filter: Filter = field(default_factory=Filter)

@@ -18,8 +18,7 @@
 
 import os
 import re
-from typing import List
-from dataclasses import dataclass, field
+from typing import List, Union
 
 import pmlib
 
@@ -34,8 +33,7 @@ _folder = re.compile("(?P<ID>.+):(?P<Folder>.+):(?P<Name>.+)")
 
 __all__ = [
     "Item",
-    "sort_items",
-    "Data"
+    "sort_items"
 ]
 
 
@@ -98,6 +96,7 @@ class Item(EntryData):
         self.children = []
         self.mails = []
         self.symbols = []
+        self.rules = []
         self.navigation = Navigation()
         self.type = get_entry_type(int(m.group("Type")))
         self.name = str(m.group("Name"))
@@ -205,14 +204,26 @@ class Item(EntryData):
         self.full_name = self._set_full_name("", self)
         return
 
+    def _search(self, item: EntryData, name: str) -> Union[EntryData, None]:
+
+        for _item in item.children:
+            if _item.id == name:
+                return _item
+
+            ret = self._search(_item, name)
+            if ret is not None:
+                return ret
+
+        return None
+
+    def search(self, name: str) -> Union[EntryData, None]:
+
+        if self.id == name:
+            return self
+
+        ret = self._search(self, name)
+        return ret
+
 
 def sort_items(item: Item):
     return item.name
-
-
-@dataclass()
-class Data(object):
-
-    level: int = 0
-    entries: List[Item] = field(default_factory=list)
-    root: Item = field(default=None)

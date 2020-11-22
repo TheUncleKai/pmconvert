@@ -18,72 +18,44 @@
 
 import re
 
-from typing import List
-from enum import Enum
-
 from pmlib.filter.types import Rule
 
 __all__ = [
-    "Header"
+    "Size"
 ]
 
-
-class _Condition(Enum):
-
-    To = "T"
-    From = "F"
-    Cc = "C"
-    Subject = "S"
-    ReplyTo = "R"
-    Sender = "E"
-
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Headers...
+# Message size...
 
-#  If header "T" contains "ubuntu-security-announce@lists.ubuntu.com" Move "2Q76BD9H:22D9:FOL034E4"
-
-#  T: To
-#  F: From
-#  C: Cc
-#  S: Subject
-#  R: Reply-to
-#  E: Sender
-
-#  contains
-#  is
+#  If size > 50000 Move "BNNW0F27:6321:FOL04467"
+#  If size < 50000 Move "BNNW0F27:6321:FOL04467"
 
 
-class Header(Rule):
+class Size(Rule):
 
     def __repr__(self):
-        text = "{0:s}: {1:s} {2:s}".format(str(self.action), self.type, self.filter)
+        text = "{0:s}: If {1:s} {2:d} bytes".format(str(self.action), self.type, self.size)
         return text
 
     def __init__(self):
-        Rule.__init__(self, "Headers")
-        self._pattern = re.compile(
-            "If header \"(?P<Header>[TFCSRE]+)\" (?P<Type>contains|is) \"(?P<Filter>.+)\" (?P<Action>.+)")
+        Rule.__init__(self, "Message size...")
 
-        self.header: List[_Condition] = []
+        self._pattern = re.compile(
+            "If size (?P<Type>[<>]) (?P<Size>[0-9]+) (?P<Action>.+)")
+
         self.type: str = ""
-        self.filter: str = ""
+        self.size: int = 0
         return
 
     def parse(self, data: str) -> bool:
+
         m = self._pattern.search(data)
         if m is None:
             return False
 
-        _header = m.group('Header')
         _action = m.group('Action')
 
         self.type = m.group('Type')
-        self.filter = m.group('Filter')
-
-        for _char in _header:
-            for condition in _Condition:
-                if condition.value == _char:
-                    self.header.append(condition)
-
+        self.size = int(m.group('Size'))
         self.set_action(_action)
         return True

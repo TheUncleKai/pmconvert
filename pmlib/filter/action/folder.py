@@ -16,7 +16,11 @@
 #    Copyright (C) 2017, Kai Raphahn <kai.raphahn@laburec.de>
 #
 
+import re
+
 from typing import Union
+
+import pmlib
 
 from pmlib.filter.types import Action
 from pmlib.types import Folder
@@ -27,6 +31,9 @@ __all__ = [
 ]
 
 
+_folder = re.compile("(?P<ID>.+):(?P<Folder>.+):(?P<Name>.+)")
+
+
 class Copy(Action):
 
     def __init__(self):
@@ -34,9 +41,29 @@ class Copy(Action):
         self.name = "Copy"
         self.filter = "Copy"
         self.folder: Union[Folder, None] = None
+
+        self._pattern = re.compile("Copy \"(?P<Folder>.+)\"")
         return
 
     def parse(self, data: str) -> bool:
+        m = self._pattern.search(data)
+        if m is None:
+            return False
+
+        folder = m.group('Folder')
+
+        m = _folder.search(folder)
+        if m is None:
+            return False
+
+        _id = m.group('ID')
+
+        self.folder = pmlib.data.root.search(_id)
+
+        if self.folder is None:
+            return False
+
+        self.folder.rules.append(self.rule)
         return True
 
     def result(self) -> str:
@@ -51,9 +78,29 @@ class Move(Action):
         self.name = "Move"
         self.filter = "Move"
         self.folder: Union[Folder, None] = None
+
+        self._pattern = re.compile("Move \"(?P<Folder>.+)\"")
         return
 
     def parse(self, data: str) -> bool:
+        m = self._pattern.search(data)
+        if m is None:
+            return False
+
+        folder = m.group('Folder')
+
+        m = _folder.search(folder)
+        if m is None:
+            return False
+
+        _id = m.group('ID')
+
+        self.folder = pmlib.data.root.search(_id)
+
+        if self.folder is None:
+            return False
+
+        self.folder.rules.append(self.rule)
         return True
 
     def result(self) -> str:
