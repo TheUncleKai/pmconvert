@@ -48,6 +48,7 @@ class ReportExcel(Reporter):
         self.column_count: int = 1
         self.column_success: int = 2
         self.column_failure: int = 3
+        self.column_filter: int = 4
         return
 
     def format_symbol(self, symbol: Symbol, item: Item) -> str:
@@ -97,10 +98,11 @@ class ReportExcel(Reporter):
         cell_format.set_bold()
 
         _columns = [
-            "Tree",
-            "Count",
-            "Success",
-            "Failure"
+            "Name",
+            "C",
+            "+",
+            "-",
+            "Filter"
         ]
 
         n = 0
@@ -112,18 +114,40 @@ class ReportExcel(Reporter):
         self.row += 1
         return
 
+    @staticmethod
+    def _create_filter(item: Item) -> str:
+        _filter = ""
+
+        n = 0
+        for _rule in item.rules:
+            line = str(_rule)
+
+            if n == 0:
+                _filter = line
+            else:
+                _filter = "{0:s}\n{1:s}".format(_filter, line)
+
+        return _filter
+
     def _write_item(self, item: Item):
         cell_tree = self.workbook.add_format()
         cell_tree.set_font_name("Lucida Console")
-        cell_tree.set_font_size(10)
+        cell_tree.set_font_size(8)
         cell_tree.set_align("left")
         cell_tree.set_align("vcenter")
 
         cell_format = self.workbook.add_format()
         cell_format.set_font_name("Arial")
-        cell_format.set_font_size(10)
-        cell_format.set_align("right")
+        cell_format.set_font_size(8)
+        cell_format.set_align("left")
         cell_format.set_align("vcenter")
+
+        cell_filter = self.workbook.add_format()
+        cell_filter.set_font_name("Arial")
+        cell_filter.set_font_size(8)
+        cell_filter.set_align("left")
+        cell_filter.set_align("vcenter")
+        cell_filter.set_text_wrap()
 
         text = ""
         for _symbol in item.symbols:
@@ -138,6 +162,7 @@ class ReportExcel(Reporter):
         self.sheet.write_number(self.row, self.column_count, item.report.count, cell_format)
         self.sheet.write_number(self.row, self.column_success, item.report.success, cell_format)
         self.sheet.write_number(self.row, self.column_failure, item.report.failure, cell_format)
+        self.sheet.write_string(self.row, self.column_filter, self._create_filter(item), cell_filter)
         self.row += 1
         return
 
